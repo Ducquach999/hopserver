@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://equally-compaq-lip-waterproof.trycloudflare.com"
+local WS_URL = "wss://connectivity-genuine-carey-bacterial.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
@@ -515,10 +515,15 @@ local webhook2 = 'https://discordapp.com/api/webhooks/1467282601717928174/KlzAgo
 local webhook3 = 'https://discordapp.com/api/webhooks/1466274977925038132/YQfTcw1LFFJlORyo_jyy3U3opKX3f4anSkGusINqJAjpQ1AIutK0yUvLI58NnQM8A4xM'
 
 
+-- Guard: chỉ gửi webhook 1 lần per server (jobId)
+local _webhookSentJobId = nil
+
 local function sendWebhook1(foundTargets)
     if not foundTargets or #foundTargets == 0 then return end
     local placeId = game.PlaceId
     local jobId = game.JobId
+    if jobId == _webhookSentJobId then return end
+    _webhookSentJobId = jobId
     local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
     local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
 
@@ -628,6 +633,8 @@ local function sendWebhook2(foundTargets)
     if not foundTargets or #foundTargets == 0 then return end
     local placeId = game.PlaceId
     local jobId = game.JobId
+    if jobId == _webhookSentJobId then return end
+    _webhookSentJobId = jobId
     local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
     local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
 
