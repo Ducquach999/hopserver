@@ -437,34 +437,50 @@ _G.StartHopper = function()
 
         print(string.format("🔄 [%d/%d] Connecting...", attempts, MAX_ATTEMPTS))
 
-        local ok, ws = pcall(function() return wsConnect(WS_URL) end)
-        if not ok or not ws then
-            print("❌ Connect failed:", tostring(ws))
-            if running then
-                task.delay(2, connect)
+        -- Chạy trong task.spawn để không block thread chính
+        -- Volt cần điều này vì wsConnect() có thể hang
+        task.spawn(function()
+            local ok, ws = pcall(function() return wsConnect(WS_URL) end)
+
+            if not ok or not ws or type(ws) ~= "userdata" and type(ws) ~= "table" then
+                print("❌ Connect failed:", tostring(ws))
+                if running then
+                    task.delay(2, connect)
+                end
+                return
             end
-            return
-        end
 
-        socket = ws
-        alive = true
-        attempts = 0  -- reset khi connect thành công
-        print("🔗 Connected!")
+            -- Volt cần 1 frame để WS object initialize xong
+            task.wait()
 
-        -- Nhận message
-        socket.OnMessage:Connect(function(msg)
-            pcall(onMessage, msg)
-        end)
-
-        -- Xử lý disconnect → tự reconnect
-        socket.OnClose:Connect(function()
-            alive = false
-            registered = false
-            socket = nil
-            print("🔌 Disconnected")
-            if running then
-                task.delay(1, connect)
+            -- Verify object có event thật không
+            if not ws.OnMessage or not ws.OnClose then
+                print("❌ WS object invalid (no events)")
+                pcall(function() ws:Close() end)
+                if running then
+                    task.delay(2, connect)
+                end
+                return
             end
+
+            socket = ws
+            alive = true
+            attempts = 0  -- reset khi connect thành công
+            print("🔗 Connected!")
+
+            socket.OnMessage:Connect(function(msg)
+                pcall(onMessage, msg)
+            end)
+
+            socket.OnClose:Connect(function()
+                alive = false
+                registered = false
+                socket = nil
+                print("🔌 Disconnected")
+                if running then
+                    task.delay(1, connect)
+                end
+            end)
         end)
     end
 
