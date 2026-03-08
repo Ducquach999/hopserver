@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://feof-message-possible-unix.trycloudflare.com"
+local WS_URL = "wss://llc-ensures-honest-fleet.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
