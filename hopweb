@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://proved-stations-voted-journal.trycloudflare.com"
+local WS_URL = "wss://feof-message-possible-unix.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
