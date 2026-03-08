@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://equally-compaq-lip-waterproof.trycloudflare.com"
+local WS_URL = "wss://proved-stations-voted-journal.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
@@ -350,227 +350,134 @@ for _, n in ipairs(targets2) do targetDict2[string.lower(n)] = true end
 -- WEBSOCKET HOPPER
 --==================================================
 _G.StartHopper = function()
-    -- DELAY RANDOM 4-6s TRƯỚC KHI KẾT NỐI
-    local delayTime = 4 + math.random() * 2
-    print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
-    task.wait(delayTime)
-    
-    print("🌐 WebSocket Hopper Starting...")
-    print("📡 Server:", WS_URL)
-    
-    local RECONNECT_DELAY = 1
-    local PING_INTERVAL = 10
-    
+    -- Delay random 3-5s để tránh tất cả connect cùng lúc
+    local delay = 3 + math.random() * 2
+    task.wait(delay)
+
+    print("🌐 StartHopper:", WS_URL)
+
     local socket = nil
-    local isConnected = false
-    local lastJobId = nil
-    local connectionAttempts = 0
-    local stopReconnect = false  -- Flag để dừng reconnect
-    
-    -- Timeout 180s không chuyển server → ngắt tất cả kết nối
-    task.spawn(function()
-        task.wait(180)
-        warn("⚠️ 180s timeout - ngắt tất cả kết nối...")
-        stopReconnect = true  -- Dừng reconnect trước
-        connectionAttempts = 999  -- Đảm bảo không reconnect
+    local alive = false
+    local running = true
+    local registered = false
+    local attempts = 0
+    local MAX_ATTEMPTS = 10
+
+    -- Hard timeout: 3 phút không teleport → dừng
+    task.delay(180, function()
+        running = false
+        alive = false
+        if socket then pcall(function() socket:Close() end) end
+        socket = nil
+        print("⏰ 180s timeout, dừng hopper")
+    end)
+
+    local function send(data)
+        if not alive or not socket then return false end
+        return pcall(function() socket:Send(HttpService:JSONEncode(data)) end)
+    end
+
+    local function onMessage(msg)
+        local ok, data = pcall(function() return HttpService:JSONDecode(msg) end)
+        if not ok or type(data) ~= "table" then return end
+
+        local t = data.type
+
+        if t == "welcome" then
+            send({action = "register", username = LP.Name})
+
+        elseif t == "registered" then
+            registered = true
+            send({action = "next"})
+
+        elseif t == "job" then
+            local jid = data.jobId
+            if jid and jid ~= "" then
+                print("🚀 Teleport →", jid)
+                pcall(function()
+                    TeleportService:TeleportToPlaceInstance(data.placeId, jid, LP)
+                end)
+            else
+                -- Server bảo chờ rồi retry
+                local wait_sec = (data.seconds or 3)
+                task.delay(wait_sec, function()
+                    if alive then send({action = "next"}) end
+                end)
+            end
+
+        elseif t == "wait" then
+            local wait_sec = (data.seconds or 3)
+            task.delay(wait_sec, function()
+                if alive then send({action = "next"}) end
+            end)
+
+        elseif t == "pong" then
+            -- ok
+
+        end
+    end
+
+    local function connect()
+        if not running then return end
+
+        attempts = attempts + 1
+        if attempts > MAX_ATTEMPTS then
+            warn("❌ Đã thử " .. MAX_ATTEMPTS .. " lần, dừng hopper")
+            running = false
+            return
+        end
+
+        -- Đóng socket cũ nếu còn
         if socket then
             pcall(function() socket:Close() end)
+            socket = nil
         end
-        isConnected = false
-        socket = nil
-    end)
-    
-    local function sendMessage(data)
-        if not isConnected or not socket then return false end
-        local ok = pcall(function() 
-            socket:Send(HttpService:JSONEncode(data)) 
-        end)
-        return ok
-    end
-    
-    local function onMessage(msg)
-        print("📩 Received:", string.sub(msg, 1, 100))
-        
-        local ok, data = pcall(function() return HttpService:JSONDecode(msg) end)
-        if not ok or not data then 
-            warn("❌ Failed to decode message!")
-            return 
-        end
-        
-        local t = data.type
-        print("📦 Message type:", t)
-        
-        if t == "welcome" then
-            print("✅ Connected to server! PlaceId:", data.placeId)
-            connectionAttempts = 0
-            sendMessage({action = "register", username = LP.Name, userId = LP.UserId})
-            
-        elseif t == "registered" then
-            print("✅", data.message)
-            task.delay(0.5, function()
-                print("📨 First job request...")
-                sendMessage({action = "next"})
-            end)
-            
-        elseif t == "job" then
-            print("🎯 Received job response!")
-            if data.jobId then
-                print("🎯 JobId:", data.jobId)
-                if data.jobId ~= lastJobId then
-                    lastJobId = data.jobId
-                    print("🚀 Teleporting...")
-                    pcall(function()
-                        TeleportService:TeleportToPlaceInstance(data.placeId, data.jobId, LP)
-                    end)
-                else
-                    print("⚠️ Same JobId, skipping...")
-                end
-                -- Có jobId → request tiếp sau 1-1.5s
-                task.delay(1 + math.random() * 0.5, function()
-                    if isConnected then
-                        print("📨 Requesting next job...")
-                        sendMessage({action = "next"})
-                    end
-                end)
-            else
-                -- Không có jobId → request lại sau 5s
-                print("⚠️", data.message or "No job available")
-                task.delay(5, function()
-                    if isConnected then
-                        print("📨 Retry requesting job...")
-                        sendMessage({action = "next"})
-                    end
-                end)
-            end
-            
-        elseif t == "queue_refreshed" then
-            print("♻️ Queue refreshed:", data.queue_size)
-            
-        elseif t == "pong" then
-            -- OK
-            
-        elseif t == "status" then
-            print(string.format("📊 Q=%d C=%d", data.queue or 0, data.clients or 0))
-            
-        elseif t == "error" then
-            warn("❌", data.message)
-        else
-            print("❓ Unknown type:", t)
-        end
-    end
-    
-    local function connectWS()
-        -- Đóng socket cũ
-        if socket then 
-            pcall(function() socket:Close() end) 
-        end
-        socket = nil
-        isConnected = false
-        
-        connectionAttempts = connectionAttempts + 1
-        
-        -- Kiểm tra giới hạn trước khi connect
-        if connectionAttempts > 10 then
-            warn("❌ Đã thử 10 lần, dừng lại")
-            return
-        end
-        
-        print(string.format("🔄 [Attempt %d/10] Connecting to: %s", connectionAttempts, WS_URL))
-        
-        local connectSuccess = false
-        local connectError = nil
-        local receivedWelcome = false
-        
-        task.spawn(function()
-            local ok, ws = pcall(function()
-                return wsConnect(WS_URL)
-            end)
-            
-            if ok and ws then
-                socket = ws
-                isConnected = true
-                connectSuccess = true
-                print("🔗 WebSocket Connected!")
-                
-                -- OnMessage
-                pcall(function()
-                    if socket.OnMessage then
-                        socket.OnMessage:Connect(function(msg)
-                            pcall(function() 
-                                -- Check welcome
-                                if string.find(msg, '"welcome"') then
-                                    receivedWelcome = true
-                                end
-                                onMessage(msg) 
-                            end)
-                        end)
-                    end
-                end)
-                
-                -- OnClose - reconnect nếu chưa quá giới hạn
-                pcall(function()
-                    if socket.OnClose then
-                        socket.OnClose:Connect(function()
-                            print("🔌 Disconnected!")
-                            isConnected = false
-                            socket = nil
-                            if connectionAttempts < 10 then
-                                print("🔄 Reconnecting... (" .. connectionAttempts .. "/10)")
-                                task.wait(RECONNECT_DELAY)
-                                connectWS()
-                            else
-                                warn("❌ Đã reconnect 10 lần, dừng lại")
-                            end
-                        end)
-                    end
-                end)
-            else
-                connectError = tostring(ws)
-            end
-        end)
-        
-        -- Chờ tối đa 5 giây cho connection
-        local waited = 0
-        while not connectSuccess and not connectError and waited < 5 do
-            task.wait(0.5)
-            waited = waited + 0.5
-        end
-        
-        if not connectSuccess then
-            warn("❌ Connection timeout/failed!", connectError or "No response after 5s")
-            if connectionAttempts < 10 then
-                task.wait(RECONNECT_DELAY)
-                return connectWS()
-            end
-            return
-        end
-        
-        -- Chờ welcome tối đa 10s
-        task.spawn(function()
-            task.wait(10)
-            if isConnected and not receivedWelcome then
-                warn("⚠️ 10s không nhận welcome, reconnecting...")
-                if socket then
-                    pcall(function() socket:Close() end)
-                end
-            end
-        end)
-    end
-    
-    -- Ping loop
-    task.spawn(function()
-        while true do
-            task.wait(PING_INTERVAL)
-            if isConnected then 
-                sendMessage({action = "ping"}) 
-            end
-        end
-    end)
-    
-    -- Connect
-    connectWS()
-end
+        alive = false
+        registered = false
 
+        print(string.format("🔄 [%d/%d] Connecting...", attempts, MAX_ATTEMPTS))
+
+        local ok, ws = pcall(function() return wsConnect(WS_URL) end)
+        if not ok or not ws then
+            print("❌ Connect failed:", tostring(ws))
+            if running then
+                task.delay(2, connect)
+            end
+            return
+        end
+
+        socket = ws
+        alive = true
+        attempts = 0  -- reset khi connect thành công
+        print("🔗 Connected!")
+
+        -- Nhận message
+        socket.OnMessage:Connect(function(msg)
+            pcall(onMessage, msg)
+        end)
+
+        -- Xử lý disconnect → tự reconnect
+        socket.OnClose:Connect(function()
+            alive = false
+            registered = false
+            socket = nil
+            print("🔌 Disconnected")
+            if running then
+                task.delay(1, connect)
+            end
+        end)
+    end
+
+    -- Ping loop giữ connection sống
+    task.spawn(function()
+        while running do
+            task.wait(15)
+            if alive then send({action = "ping"}) end
+        end
+    end)
+
+    connect()
+end
 --==================================================
 -- WEBHOOKS
 --==================================================
@@ -581,15 +488,11 @@ local webhook2 = 'https://discordapp.com/api/webhooks/1467282601717928174/KlzAgo
 -- Normal secret
 local webhook3 = 'https://discordapp.com/api/webhooks/1466274977925038132/YQfTcw1LFFJlORyo_jyy3U3opKX3f4anSkGusINqJAjpQ1AIutK0yUvLI58NnQM8A4xM'
 
-local lastJobIdSent = nil
 
 local function sendWebhook1(foundTargets)
     if not foundTargets or #foundTargets == 0 then return end
     local placeId = game.PlaceId
     local jobId = game.JobId
-    if jobId == lastJobIdSent then return end
-    lastJobIdSent = jobId
-
     local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
     local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
 
@@ -699,9 +602,6 @@ local function sendWebhook2(foundTargets)
     if not foundTargets or #foundTargets == 0 then return end
     local placeId = game.PlaceId
     local jobId = game.JobId
-    if jobId == lastJobIdSent then return end
-    lastJobIdSent = jobId
-
     local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
     local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
 
