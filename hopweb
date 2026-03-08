@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://llc-ensures-honest-fleet.trycloudflare.com"
+local WS_URL = "wss://equally-compaq-lip-waterproof.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
@@ -349,7 +349,16 @@ for _, n in ipairs(targets2) do targetDict2[string.lower(n)] = true end
 --==================================================
 -- WEBSOCKET HOPPER
 --==================================================
+-- Guard: chỉ cho 1 instance StartHopper chạy tại 1 thời điểm
+_G._HopperRunning = false
+
 _G.StartHopper = function()
+    if _G._HopperRunning then
+        print("⚠️ Hopper đang chạy rồi, bỏ qua")
+        return
+    end
+    _G._HopperRunning = true
+
     -- Delay random 3-5s để tránh tất cả connect cùng lúc
     local delay = 3 + math.random() * 2
     task.wait(delay)
@@ -360,6 +369,7 @@ _G.StartHopper = function()
     local alive = false
     local running = true
     local registered = false
+    local connecting = false  -- chống 2 connect() chạy song song
     local attempts = 0
     local MAX_ATTEMPTS = 10
 
@@ -367,6 +377,7 @@ _G.StartHopper = function()
     task.delay(180, function()
         running = false
         alive = false
+        _G._HopperRunning = false
         if socket then pcall(function() socket:Close() end) end
         socket = nil
         print("⏰ 180s timeout, dừng hopper")
@@ -419,13 +430,17 @@ _G.StartHopper = function()
 
     local function connect()
         if not running then return end
+        if connecting then return end  -- đang connect rồi, bỏ qua
 
         attempts = attempts + 1
         if attempts > MAX_ATTEMPTS then
             warn("❌ Đã thử " .. MAX_ATTEMPTS .. " lần, dừng hopper")
             running = false
+            _G._HopperRunning = false
             return
         end
+
+        connecting = true
 
         -- Đóng socket cũ nếu còn
         if socket then
@@ -437,35 +452,31 @@ _G.StartHopper = function()
 
         print(string.format("🔄 [%d/%d] Connecting...", attempts, MAX_ATTEMPTS))
 
-        -- Chạy trong task.spawn để không block thread chính
-        -- Volt cần điều này vì wsConnect() có thể hang
         task.spawn(function()
             local ok, ws = pcall(function() return wsConnect(WS_URL) end)
 
-            if not ok or not ws or type(ws) ~= "userdata" and type(ws) ~= "table" then
+            if not ok or not ws or (type(ws) ~= "userdata" and type(ws) ~= "table") then
                 print("❌ Connect failed:", tostring(ws))
-                if running then
-                    task.delay(2, connect)
-                end
+                connecting = false
+                if running then task.delay(2, connect) end
                 return
             end
 
             -- Volt cần 1 frame để WS object initialize xong
             task.wait()
 
-            -- Verify object có event thật không
             if not ws.OnMessage or not ws.OnClose then
                 print("❌ WS object invalid (no events)")
                 pcall(function() ws:Close() end)
-                if running then
-                    task.delay(2, connect)
-                end
+                connecting = false
+                if running then task.delay(2, connect) end
                 return
             end
 
             socket = ws
             alive = true
-            attempts = 0  -- reset khi connect thành công
+            connecting = false  -- connect xong, cho phép reconnect sau này
+            attempts = 0
             print("🔗 Connected!")
 
             socket.OnMessage:Connect(function(msg)
@@ -476,10 +487,9 @@ _G.StartHopper = function()
                 alive = false
                 registered = false
                 socket = nil
+                connecting = false  -- đảm bảo reset khi close
                 print("🔌 Disconnected")
-                if running then
-                    task.delay(1, connect)
-                end
+                if running then task.delay(2, connect) end
             end)
         end)
     end
