@@ -307,8 +307,9 @@ local targets1 = {
 local targetsVIP = {
     'Chipso and Queso','La Casa Boo','Headless Horseman',
     'Strawberry Elephant','Ketupat Kepat',
-    'Tictac Sahur','Ketchuru and Musturu','Garama and Madundung','Spaghetti Tualetti',
+    'Tictac Sahur','Ketchuru and Musturu','Garama and Madundung',
     'Dragon Cannelloni',
+
     'Celularcini Viciosini','Los Bros','Tralaledon','Los Tacoritas','Los Primos',
     'Chillin Chili','Los Hotspotsitos','La Supreme Combinasion','La Secret Combinasion',
     'Burguro And Fryuro','Eviledon','Spooky and Pumpky','Meowl',
@@ -349,161 +350,279 @@ for _, n in ipairs(targets2) do targetDict2[string.lower(n)] = true end
 --==================================================
 -- WEBSOCKET HOPPER
 --==================================================
--- Guard: chỉ cho 1 instance StartHopper chạy tại 1 thời điểm
-_G._HopperRunning = false
-
 _G.StartHopper = function()
-    if _G._HopperRunning then
-        print("⚠️ Hopper đang chạy rồi, bỏ qua")
-        return
-    end
-    _G._HopperRunning = true
-
-    -- Delay random 3-5s để tránh tất cả connect cùng lúc
-    local delay = 3 + math.random() * 2
-    task.wait(delay)
-
-    print("🌐 StartHopper:", WS_URL)
-
+    -- DELAY RANDOM 4-6s TRƯỚC KHI KẾT NỐI
+    local delayTime = 4 + math.random() * 2
+    print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
+    task.wait(delayTime)
+    
+    print("🌐 WebSocket Hopper Starting...")
+    print("📡 Server:", WS_URL)
+    
+    local RECONNECT_DELAY = 2
+    local PING_INTERVAL = 10
+    local MAX_RECONNECT = 20  -- Tăng lên 20 để không bị dừng sớm
+    
     local socket = nil
-    local alive = false
-    local running = true
-    local registered = false
-    local connecting = false  -- chống 2 connect() chạy song song
-    local attempts = 0
-    local MAX_ATTEMPTS = 10
-
-    -- Hard timeout: 3 phút không teleport → dừng
-    task.delay(180, function()
-        running = false
-        alive = false
-        _G._HopperRunning = false
-        if socket then pcall(function() socket:Close() end) end
-        socket = nil
-        print("⏰ 180s timeout, dừng hopper")
-    end)
-
-    local function send(data)
-        if not alive or not socket then return false end
-        return pcall(function() socket:Send(HttpService:JSONEncode(data)) end)
-    end
-
-    local function onMessage(msg)
-        local ok, data = pcall(function() return HttpService:JSONDecode(msg) end)
-        if not ok or type(data) ~= "table" then return end
-
-        local t = data.type
-
-        if t == "welcome" then
-            send({action = "register", username = LP.Name})
-
-        elseif t == "registered" then
-            registered = true
-            send({action = "next"})
-
-        elseif t == "job" then
-            local jid = data.jobId
-            if jid and jid ~= "" then
-                print("🚀 Teleport →", jid)
-                pcall(function()
-                    TeleportService:TeleportToPlaceInstance(data.placeId, jid, LP)
-                end)
-            else
-                -- Server bảo chờ rồi retry
-                local wait_sec = (data.seconds or 3)
-                task.delay(wait_sec, function()
-                    if alive then send({action = "next"}) end
-                end)
+    local isConnected = false
+    local lastJobId = nil
+    local connectionAttempts = 0
+    local stopReconnect = false
+    local hopperActive = true  -- Flag tổng, set false khi 180s timeout
+    
+    -- Timeout 180s không chuyển server → ngắt tất cả kết nối
+    task.spawn(function()
+        task.wait(180)
+        if hopperActive then
+            warn("⚠️ 180s timeout - ngắt tất cả kết nối...")
+            hopperActive = false
+            stopReconnect = true
+            if socket then
+                pcall(function() socket:Close() end)
             end
-
-        elseif t == "wait" then
-            local wait_sec = (data.seconds or 3)
-            task.delay(wait_sec, function()
-                if alive then send({action = "next"}) end
-            end)
-
-        elseif t == "pong" then
-            -- ok
-
-        end
-    end
-
-    local function connect()
-        if not running then return end
-        if connecting then return end  -- đang connect rồi, bỏ qua
-
-        attempts = attempts + 1
-        if attempts > MAX_ATTEMPTS then
-            warn("❌ Đã thử " .. MAX_ATTEMPTS .. " lần, dừng hopper")
-            running = false
-            _G._HopperRunning = false
-            return
-        end
-
-        connecting = true
-
-        -- Đóng socket cũ nếu còn
-        if socket then
-            pcall(function() socket:Close() end)
+            isConnected = false
             socket = nil
         end
-        alive = false
-        registered = false
-
-        print(string.format("🔄 [%d/%d] Connecting...", attempts, MAX_ATTEMPTS))
-
+    end)
+    
+    local function sendMessage(data)
+        if not isConnected or not socket then return false end
+        local ok = pcall(function() 
+            socket:Send(HttpService:JSONEncode(data)) 
+        end)
+        return ok
+    end
+    
+    local function requestNextJob()
+        if isConnected then
+            print("📨 Requesting next job...")
+            sendMessage({action = "next"})
+        end
+    end
+    
+    local function onMessage(msg)
+        print("📩 Received:", string.sub(msg, 1, 100))
+        
+        local ok, data = pcall(function() return HttpService:JSONDecode(msg) end)
+        if not ok or not data then 
+            warn("❌ Failed to decode message!")
+            return 
+        end
+        
+        local t = data.type
+        print("📦 Message type:", t)
+        
+        if t == "welcome" then
+            print("✅ Connected to server! PlaceId:", data.placeId)
+            connectionAttempts = 0  -- Reset khi nhận welcome thành công
+            sendMessage({action = "register", username = LP.Name, userId = LP.UserId})
+            
+        elseif t == "registered" then
+            print("✅", data.message or "Registered")
+            task.delay(0.5, function()
+                print("📨 First job request...")
+                sendMessage({action = "next"})
+            end)
+            
+        elseif t == "job" then
+            print("🎯 Received job response!")
+            if data.jobId then
+                print("🎯 JobId:", data.jobId)
+                if data.jobId ~= lastJobId then
+                    lastJobId = data.jobId
+                    print("🚀 Teleporting...")
+                    -- Teleport → Roblox sẽ disconnect WS, OnClose sẽ reconnect
+                    -- Không cần request next sau teleport vì script restart ở server mới
+                    pcall(function()
+                        TeleportService:TeleportToPlaceInstance(data.placeId, data.jobId, LP)
+                    end)
+                    -- Nếu teleport fail (pcall bắt được lỗi), request job tiếp
+                    task.delay(3, function()
+                        if isConnected then
+                            print("📨 Teleport có thể failed, requesting next job...")
+                            sendMessage({action = "next"})
+                        end
+                    end)
+                else
+                    print("⚠️ Same JobId, skipping → request next...")
+                    task.delay(0.5, function()
+                        requestNextJob()
+                    end)
+                end
+            else
+                -- jobId nil → server trả message không có job
+                print("⚠️", data.message or "No job available")
+                task.delay(5, function()
+                    if isConnected then
+                        print("📨 Retry requesting job...")
+                        sendMessage({action = "next"})
+                    end
+                end)
+            end
+            
+        elseif t == "wait" then
+            -- ✅ FIX BUG CHÍNH: Server báo queue rỗng, chờ rồi retry
+            local waitSecs = (data.seconds or 3) + 1  -- +1s buffer
+            print(string.format("⏳ Server yêu cầu chờ %ds rồi retry...", waitSecs))
+            task.delay(waitSecs, function()
+                if isConnected then
+                    print("📨 Retry after wait...")
+                    sendMessage({action = "next"})
+                end
+            end)
+            
+        elseif t == "queue_refreshed" then
+            print("♻️ Queue refreshed:", data.queue_size or "?")
+            -- Queue có data mới → request ngay
+            task.delay(0.5, function()
+                if isConnected then
+                    requestNextJob()
+                end
+            end)
+            
+        elseif t == "pong" then
+            -- OK, ping-pong hoạt động
+            
+        elseif t == "status" then
+            print(string.format("📊 Q=%d C=%d", data.queue or 0, data.clients or 0))
+            
+        elseif t == "error" then
+            warn("❌ Server error:", data.message or "unknown")
+            -- Retry sau lỗi
+            task.delay(3, function()
+                if isConnected then
+                    sendMessage({action = "next"})
+                end
+            end)
+        else
+            print("❓ Unknown type:", t)
+        end
+    end
+    
+    local connectWS  -- forward declare
+    
+    connectWS = function()
+        if stopReconnect or not hopperActive then
+            warn("🛑 Hopper đã dừng, không reconnect")
+            return
+        end
+        
+        -- Đóng socket cũ
+        if socket then 
+            pcall(function() socket:Close() end) 
+        end
+        socket = nil
+        isConnected = false
+        
+        connectionAttempts = connectionAttempts + 1
+        
+        if connectionAttempts > MAX_RECONNECT then
+            warn("❌ Đã thử " .. MAX_RECONNECT .. " lần, dừng lại")
+            return
+        end
+        
+        print(string.format("🔄 [Attempt %d/%d] Connecting to: %s", connectionAttempts, MAX_RECONNECT, WS_URL))
+        
+        local connectSuccess = false
+        local connectError = nil
+        local receivedWelcome = false
+        local onCloseRegistered = false
+        
         task.spawn(function()
-            local ok, ws = pcall(function() return wsConnect(WS_URL) end)
-
-            if not ok or not ws or (type(ws) ~= "userdata" and type(ws) ~= "table") then
-                print("❌ Connect failed:", tostring(ws))
-                connecting = false
-                if running then task.delay(2, connect) end
-                return
-            end
-
-            -- Volt cần 1 frame để WS object initialize xong
-            task.wait()
-
-            if not ws.OnMessage or not ws.OnClose then
-                print("❌ WS object invalid (no events)")
-                pcall(function() ws:Close() end)
-                connecting = false
-                if running then task.delay(2, connect) end
-                return
-            end
-
-            socket = ws
-            alive = true
-            connecting = false  -- connect xong, cho phép reconnect sau này
-            attempts = 0
-            print("🔗 Connected!")
-
-            socket.OnMessage:Connect(function(msg)
-                pcall(onMessage, msg)
+            local ok, ws = pcall(function()
+                return wsConnect(WS_URL)
             end)
-
-            socket.OnClose:Connect(function()
-                alive = false
-                registered = false
-                socket = nil
-                connecting = false  -- đảm bảo reset khi close
-                print("🔌 Disconnected")
-                if running then task.delay(2, connect) end
-            end)
+            
+            if ok and ws then
+                socket = ws
+                isConnected = true
+                connectSuccess = true
+                print("🔗 WebSocket Connected!")
+                
+                -- OnMessage
+                pcall(function()
+                    if socket.OnMessage then
+                        socket.OnMessage:Connect(function(msg)
+                            pcall(function() 
+                                if string.find(msg, '"welcome"') then
+                                    receivedWelcome = true
+                                end
+                                onMessage(msg) 
+                            end)
+                        end)
+                    end
+                end)
+                
+                -- OnClose - luôn reconnect trừ khi stopReconnect
+                pcall(function()
+                    if socket.OnClose then
+                        onCloseRegistered = true
+                        socket.OnClose:Connect(function()
+                            print("🔌 Disconnected! (attempt=" .. connectionAttempts .. ")")
+                            isConnected = false
+                            socket = nil
+                            if not stopReconnect and hopperActive then
+                                -- Reset attempts để reconnect không bị count sai
+                                -- Giữ nguyên connectionAttempts để track số lần reconnect
+                                local delay = math.min(RECONNECT_DELAY * connectionAttempts, 10)
+                                print(string.format("🔄 Reconnecting in %.1fs...", delay))
+                                task.wait(delay)
+                                connectWS()
+                            else
+                                warn("🛑 Không reconnect (stopReconnect=" .. tostring(stopReconnect) .. ")")
+                            end
+                        end)
+                    end
+                end)
+            else
+                connectError = tostring(ws)
+                print("❌ Connect failed:", connectError)
+            end
+        end)
+        
+        -- Chờ tối đa 8 giây cho connection
+        local waited = 0
+        while not connectSuccess and not connectError and waited < 8 do
+            task.wait(0.5)
+            waited = waited + 0.5
+        end
+        
+        if not connectSuccess then
+            warn("❌ Connection timeout/failed! " .. (connectError or "No response after 8s"))
+            if not stopReconnect and hopperActive and connectionAttempts < MAX_RECONNECT then
+                local delay = math.min(RECONNECT_DELAY * connectionAttempts, 10)
+                task.wait(delay)
+                return connectWS()
+            end
+            return
+        end
+        
+        -- Chờ welcome tối đa 15s
+        task.spawn(function()
+            task.wait(15)
+            if isConnected and not receivedWelcome then
+                warn("⚠️ 15s không nhận welcome, reconnecting...")
+                if socket then
+                    pcall(function() socket:Close() end)
+                end
+            end
         end)
     end
-
-    -- Ping loop giữ connection sống
+    
+    -- Ping loop
     task.spawn(function()
-        while running do
-            task.wait(15)
-            if alive then send({action = "ping"}) end
+        while hopperActive do
+            task.wait(PING_INTERVAL)
+            if isConnected then 
+                sendMessage({action = "ping"}) 
+            end
         end
     end)
-
-    connect()
+    
+    -- Connect
+    connectWS()
 end
+
 --==================================================
 -- WEBHOOKS
 --==================================================
@@ -514,16 +633,15 @@ local webhook2 = 'https://discordapp.com/api/webhooks/1467282601717928174/KlzAgo
 -- Normal secret
 local webhook3 = 'https://discordapp.com/api/webhooks/1466274977925038132/YQfTcw1LFFJlORyo_jyy3U3opKX3f4anSkGusINqJAjpQ1AIutK0yUvLI58NnQM8A4xM'
 
-
--- Guard: chỉ gửi webhook 1 lần per server (jobId)
-local _webhookSentJobId = nil
+local lastJobIdSent = nil
 
 local function sendWebhook1(foundTargets)
     if not foundTargets or #foundTargets == 0 then return end
     local placeId = game.PlaceId
     local jobId = game.JobId
-    if jobId == _webhookSentJobId then return end
-    _webhookSentJobId = jobId
+    if jobId == lastJobIdSent then return end
+    lastJobIdSent = jobId
+
     local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
     local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
 
@@ -633,8 +751,9 @@ local function sendWebhook2(foundTargets)
     if not foundTargets or #foundTargets == 0 then return end
     local placeId = game.PlaceId
     local jobId = game.JobId
-    if jobId == _webhookSentJobId then return end
-    _webhookSentJobId = jobId
+    if jobId == lastJobIdSent then return end
+    lastJobIdSent = jobId
+
     local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
     local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
 
