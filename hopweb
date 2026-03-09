@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://wellness-extra-download-tmp.trycloudflare.com"
+local WS_URL = "wss://labor-nickel-clicking-words.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
@@ -352,7 +352,7 @@ for _, n in ipairs(targets2) do targetDict2[string.lower(n)] = true end
 --==================================================
 _G.StartHopper = function()
     -- DELAY RANDOM 4-6s TRƯỚC KHI KẾT NỐI
-    local delayTime = 4 + math.random() * 2
+    local delayTime = 4 + math.random() * 16
     print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
     task.wait(delayTime)
     
