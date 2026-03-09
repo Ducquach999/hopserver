@@ -352,7 +352,7 @@ for _, n in ipairs(targets2) do targetDict2[string.lower(n)] = true end
 --==================================================
 _G.StartHopper = function()
     -- DELAY RANDOM 4-6s TRƯỚC KHI KẾT NỐI
-    local delayTime = 4 + math.random() * 16
+    local delayTime = 4 + math.random() * 2
     print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
     task.wait(delayTime)
     
