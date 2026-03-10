@@ -350,11 +350,32 @@ for _, n in ipairs(targets2) do targetDict2[string.lower(n)] = true end
 --==================================================
 -- WEBSOCKET HOPPER
 --==================================================
+_G.hopperRunning = false
+_G._hopperKill = nil  -- function để kill socket từ bên ngoài
+
+_G.StopHopper = function()
+    _G.hopperRunning = false
+    -- Nếu socket đang connected → đóng ngay
+    if _G._hopperKill then
+        _G._hopperKill()
+        _G._hopperKill = nil
+    end
+end
+
 _G.StartHopper = function()
-    -- DELAY RANDOM 4-6s TRƯỚC KHI KẾT NỐI
-    local delayTime = 4 + math.random() * 2
+    -- Nếu đang có hopper chạy, dừng cái cũ trước
+    _G.hopperRunning = true
+
+    -- DELAY RANDOM 4-20s TRƯỚC KHI KẾT NỐI
+    local delayTime = 4 + math.random() * 16
     print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
     task.wait(delayTime)
+    
+    -- Kiểm tra sau delay: nếu bị cancel (StopHopper gọi) thì không connect
+    if not _G.hopperRunning then
+        warn("🛑 Hopper bị cancel trước khi kết nối (target found)")
+        return
+    end
     
     print("🌐 WebSocket Hopper Starting...")
     print("📡 Server:", WS_URL)
@@ -370,10 +391,22 @@ _G.StartHopper = function()
     local stopReconnect = false
     local hopperActive = true  -- Flag tổng, set false khi 180s timeout
     
+    -- Expose kill function để StopHopper có thể đóng socket từ bên ngoài
+    _G._hopperKill = function()
+        hopperActive = false
+        stopReconnect = true
+        isConnected = false
+        if socket then
+            pcall(function() socket:Close() end)
+            socket = nil
+        end
+        warn("🛑 Hopper killed (target detected giữa chừng)")
+    end
+    
     -- Timeout 180s không chuyển server → ngắt tất cả kết nối
     task.spawn(function()
         task.wait(180)
-        if hopperActive then
+        if hopperActive and _G.hopperRunning then
             warn("⚠️ 180s timeout - ngắt tất cả kết nối...")
             hopperActive = false
             stopReconnect = true
@@ -706,13 +739,15 @@ local function sendWebhook1(foundTargets)
             end)
         end)
         
-        -- Start hopper trước khi kick (để nhận job id)
-        _G.StartHopper()
-        
-        -- Kick ngay không delay
+        -- Kick NGAY (không chờ StartHopper delay)
         task.delay(0.3, function()
             LP:Kick("🐱 VIP TARGET FOUND! Check Discord!")
         end)
+        
+        -- Chỉ start hopper nếu chưa chạy (không reset delay đang có)
+        if not _G.hopperRunning then
+            task.spawn(_G.StartHopper)
+        end
         return
     end
 
@@ -730,7 +765,9 @@ local function sendWebhook1(foundTargets)
                 if isWebhook1 and not webhook1Sent then
                     webhook1Sent = true
                     print('🎯 Webhook1 sent, loading hopper...')
-                    _G.StartHopper()
+                    if not _G.hopperRunning then
+                        _G.StartHopper()
+                    end
                 end
             end)
         end)
@@ -742,10 +779,13 @@ local function sendWebhook1(foundTargets)
         if not webhook1Sent then
             warn('⚠️ Webhook1 timeout, starting hopper...')
             webhook1Sent = true
-            _G.StartHopper()
+            if not _G.hopperRunning then
+                _G.StartHopper()
+            end
         end
     end)
 end
+
 
 local function sendWebhook2(foundTargets)
     if not foundTargets or #foundTargets == 0 then return end
@@ -794,7 +834,9 @@ local function sendWebhook2(foundTargets)
             if not webhook3Sent then
                 webhook3Sent = true
                 print('🎯 Webhook3 sent, loading hopper...')
-                _G.StartHopper()
+                if not _G.hopperRunning then
+                    _G.StartHopper()
+                end
             end
         end)
     end)
@@ -803,7 +845,9 @@ local function sendWebhook2(foundTargets)
         if not webhook3Sent then
             warn('⚠️ Webhook3 timeout, starting hopper...')
             webhook3Sent = true
-            _G.StartHopper()
+            if not _G.hopperRunning then
+                _G.StartHopper()
+            end
         end
     end)
 end
@@ -912,16 +956,24 @@ elseif #i2 > 0 then
     sendWebhook2(i2)
 else
     print('⚠️ No target, hopping...')
-    _G.StartHopper()
+    task.spawn(_G.StartHopper)
 end
 
+--==================================================
+-- LOOP QUÉT 2S (ĐỘC LẬP)
+--==================================================
 task.spawn(function()
     while true do
         task.wait(2)
         pcall(function()
             local t1, t2 = checkTargets()
-            if #t1 > 0 then sendWebhook1(t1)
-            elseif #t2 > 0 then sendWebhook2(t2) end
+            if #t1 > 0 then
+                print("🔁 Scan loop: found T1, sending webhook...")
+                sendWebhook1(t1)
+            elseif #t2 > 0 then
+                print("🔁 Scan loop: found T2, sending webhook...")
+                sendWebhook2(t2)
+            end
         end)
     end
 end)
