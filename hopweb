@@ -205,12 +205,14 @@ local function ensureWhite()
     WhiteGui.Name = 'WhiteOverlay'
     WhiteGui.ResetOnSpawn = false
     WhiteGui.IgnoreGuiInset = true
+    WhiteGui.DisplayOrder = 2147483647  -- Max DisplayOrder để đứng trên tất cả UI
     WhiteGui.Parent = pg
 
     WhiteFrame = Instance.new('Frame')
     WhiteFrame.Size = UDim2.fromScale(1, 1)
-    WhiteFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+    WhiteFrame.BackgroundColor3 = Color3.fromRGB(128, 128, 128)  -- Màu xám
     WhiteFrame.BorderSizePixel = 0
+    WhiteFrame.ZIndex = 2147483647  -- Max ZIndex
     WhiteFrame.Visible = false
     WhiteFrame.Parent = WhiteGui
 
@@ -220,9 +222,10 @@ local function ensureWhite()
     TimerLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     TimerLabel.BackgroundTransparency = 1
     TimerLabel.Text = '00:00:00'
-    TimerLabel.TextColor3 = Color3.new(0, 0, 0)
+    TimerLabel.TextColor3 = Color3.new(1, 1, 1)  -- Màu trắng
     TimerLabel.TextSize = 48
     TimerLabel.Font = Enum.Font.GothamBold
+    TimerLabel.ZIndex = 2147483647  -- Max ZIndex cho text
     TimerLabel.Parent = WhiteFrame
 end
 
@@ -255,29 +258,6 @@ task.spawn(function()
                 math.floor(elapsed%60))
         end
     end
-end)
-
---==================================================
--- ẨN TOÀN BỘ UI ROBLOX
---==================================================
-pcall(function()
-    local StarterGui = game:GetService("StarterGui")
-    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
-end)
-pcall(function()
-    game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui").Enabled = false
-end)
--- Ẩn toàn bộ ScreenGui trong PlayerGui (item bar, HUD game...)
-pcall(function()
-    local OWN_GUIS = { WhiteOverlay = true, KickCountdown = true }
-    local pg = LP:WaitForChild("PlayerGui", 5)
-    if not pg then return end
-    for _, gui in ipairs(pg:GetChildren()) do
-        if not OWN_GUIS[gui.Name] and (gui:IsA("ScreenGui") or gui:IsA("BillboardGui") or gui:IsA("SurfaceGui")) then
-            pcall(function() gui.Enabled = false end)
-        end
-    end
-
 end)
 
 --==================================================
