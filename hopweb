@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://stayed-bite-manhattan-phi.trycloudflare.com"
+local WS_URL = "wss://lou-containers-parks-glossary.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
