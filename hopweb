@@ -1,193 +1,57 @@
-repeat task.wait() until game:IsLoaded()
+repeat
+    task.wait(0.1)
+until game:IsLoaded()
 
 setfpscap(10)
 
---==================================================
--- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
---==================================================
-local WS_URL = "wss://module-plates-kurt-inns.trycloudflare.com"
---==================================================
--- SERVICES
---==================================================
+
 local Players = game:GetService('Players')
-local Lighting = game:GetService('Lighting')
-local UIS = game:GetService('UserInputService')
+local RS = game:GetService('ReplicatedStorage')
+local Workspace = game:GetService('Workspace')
+local ProximityPromptService = game:GetService('ProximityPromptService')
+local VIM = game:GetService('VirtualInputManager')
+local TweenService = game:GetService('TweenService')
 local HttpService = game:GetService('HttpService')
-local TeleportService = game:GetService('TeleportService')
+local Lighting = game:GetService('Lighting')
+local RunService = game:GetService('RunService')
 local CoreGui = game:GetService('CoreGui')
-local LP = Players.LocalPlayer
+local player = Players.LocalPlayer
+local lplr = player
 
---==================================================
--- AUTO KICK VỚI COUNTDOWN (CHẠY NGAY TỪ ĐẦU)
---==================================================
-local AUTO_KICK_TIME = 120
-local scriptStartTime = tick()
-
-task.spawn(function()
-    -- Chờ 2s rồi hiện countdown
-    task.wait(2)
-    
-    pcall(function()
-        local playerGui = LP:WaitForChild("PlayerGui", 5)
-        if not playerGui then return end
-        
-        local gui = Instance.new("ScreenGui")
-        gui.Name = "KickCountdown"
-        gui.ResetOnSpawn = false
-        gui.IgnoreGuiInset = true
-        gui.DisplayOrder = 999
-        gui.Parent = playerGui
-        
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0, 300, 0, 60)
-        label.Position = UDim2.fromScale(0.5, 0.05)
-        label.AnchorPoint = Vector2.new(0.5, 0)
-        label.BackgroundTransparency = 0.3
-        label.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-        label.TextColor3 = Color3.new(1, 1, 1)
-        label.Font = Enum.Font.GothamBold
-        label.TextSize = 28
-        label.Parent = gui
-        
-        -- Corner
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = label
-        
-        -- Tính thời gian còn lại
-        local timeRemaining = AUTO_KICK_TIME - 2  -- 118s còn lại
-        
-        -- Đếm ngược
-        for i = timeRemaining, 1, -1 do
-            label.Text = "⏰ Kick sau " .. i .. "s"
-            if i <= 10 then
-                label.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-            elseif i <= 30 then
-                label.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-            end
-            task.wait(1)
-        end
-        
-        -- Kick
-        LP:Kick("⏰ Auto Kick (120s timeout)")
-    end)
-end)
-
-print("⏰ Auto kick sau " .. AUTO_KICK_TIME .. "s")
-
---==================================================
--- KIỂM TRA WEBSOCKET SUPPORT
---==================================================
-local wsConnect = nil
-
-pcall(function()
-    if WebSocket and WebSocket.connect then
-        wsConnect = WebSocket.connect
-    end
-end)
-
-if not wsConnect then
-    warn("❌ EXECUTOR KHÔNG HỖ TRỢ WEBSOCKET!")
-    
-    -- Hiển thị thông báo trên màn hình
-    pcall(function()
-        local gui = Instance.new("ScreenGui")
-        gui.Parent = LP:WaitForChild("PlayerGui")
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.fromScale(0.8, 0.2)
-        label.Position = UDim2.fromScale(0.1, 0.4)
-        label.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-        label.TextColor3 = Color3.new(1, 1, 1)
-        label.TextSize = 24
-        label.Font = Enum.Font.GothamBold
-        label.Text = "❌ EXECUTOR KHÔNG HỖ TRỢ WEBSOCKET!\nThử dùng: Synapse X, Fluxus, KRNL, Solara, Wave"
-        label.TextWrapped = true
-        label.Parent = gui
-    end)
-    return
-end
-
-print("🔌 WebSocket được hỗ trợ!")
-print("📡 Server URL:", WS_URL)
-
---==================================================
--- DỌN DẸP WORKSPACE
---==================================================
-local function cleanWorkspace()
-    local deleted = 0
-    for _, child in pairs(workspace:GetChildren()) do
-        if child.Name ~= "Debris" and not child.Name:lower():match("plot") and child.Name ~= LP.Name then
-            pcall(function()
-                child:Destroy()
-                deleted = deleted + 1
-                if deleted % 10 == 0 then task.wait() end
-            end)
-        end
-    end
-    -- Tạo bệ đứng để không rơi xuống void
-    local char = LP.Character
-    if char then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local platform = Instance.new("Part")
-            platform.Name = "StandPlatform"
-            platform.Size = Vector3.new(10, 1, 10)
-            platform.Position = hrp.Position - Vector3.new(0, 3, 0)
-            platform.Anchored = true
-            platform.CanCollide = true
-            platform.Material = Enum.Material.SmoothPlastic
-            platform.BrickColor = BrickColor.new("Medium stone grey")
-            platform.Parent = workspace
-        end
-    end
-    print('✅ Dọn Workspace - Deleted:', deleted)
-end
-task.spawn(function()
-    task.wait(4)
-    cleanWorkspace()
-end)
-task.wait(0.5)
-
---==================================================
--- TỐI ƯU ĐỒ HỌA + TẮT RENDER/LIGHT
---==================================================
--- Tắt rendering (giảm CPU mạnh)
+-- ============================================================
+-- TỐI ƯU HIỆU SUẤT
+-- ============================================================
+-- Giới hạn chất lượng render
 pcall(function()
     local rs = settings():GetService('RenderSettings')
-    if rs then 
+    if rs then
         rs.QualityLevel = Enum.QualityLevel.Level01
         rs.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
     end
 end)
 
--- Tắt hết lighting
+-- Tắt Lighting
 pcall(function()
     Lighting.GlobalShadows = false
     Lighting.EnvironmentDiffuseScale = 0
     Lighting.EnvironmentSpecularScale = 0
-    Lighting.Brightness = 0  -- Tắt độ sáng
-    Lighting.OutdoorAmbient = Color3.new(0, 0, 0)  -- Tắt ánh sáng ngoài trời
-    Lighting.Ambient = Color3.new(0, 0, 0)  -- Tắt ánh sáng môi trường
-    Lighting.FogEnd = 0  -- Tắt fog
-    Lighting.ClockTime = 0  -- Set time = 0
-    
-    -- Xóa tất cả effect
+    Lighting.Brightness = 0
+    Lighting.OutdoorAmbient = Color3.new(0, 0, 0)
+    Lighting.Ambient = Color3.new(0, 0, 0)
+    Lighting.FogEnd = 0
+    Lighting.ClockTime = 0
     for _, v in ipairs(Lighting:GetChildren()) do
-        if v:IsA('BloomEffect') or v:IsA('SunRaysEffect') or v:IsA('DepthOfFieldEffect') 
-           or v:IsA('BlurEffect') or v:IsA('ColorCorrectionEffect') or v:IsA('SkyEffect') then
+        if v:IsA('BloomEffect') or v:IsA('SunRaysEffect') or v:IsA('DepthOfFieldEffect')
+            or v:IsA('BlurEffect') or v:IsA('ColorCorrectionEffect') then
             pcall(function() v.Enabled = false end)
         end
-    end
-    
-    -- Xóa sky
-    for _, v in ipairs(Lighting:GetChildren()) do
         if v:IsA('Sky') or v:IsA('Atmosphere') or v:IsA('Clouds') then
             pcall(function() v:Destroy() end)
         end
     end
 end)
 
--- Tắt water effect
+-- Tắt water
 pcall(function()
     local Terrain = workspace:FindFirstChildOfClass('Terrain')
     if Terrain then
@@ -198,7 +62,7 @@ pcall(function()
     end
 end)
 
--- Tối ưu tất cả parts
+-- Tối ưu tất cả parts/effects
 for _, inst in ipairs(workspace:GetDescendants()) do
     pcall(function()
         if inst:IsA('BasePart') then
@@ -212,826 +76,1449 @@ for _, inst in ipairs(workspace:GetDescendants()) do
         elseif inst:IsA('SurfaceAppearance') or inst:IsA('Texture') or inst:IsA('Decal') then
             inst:Destroy()
         elseif inst:IsA('Light') or inst:IsA('PointLight') or inst:IsA('SpotLight') or inst:IsA('SurfaceLight') then
-            inst.Enabled = false  -- Tắt tất cả đèn
+            inst.Enabled = false
         end
     end)
 end
 
--- Tắt camera effects
+-- Phủ màn hình xám + tắt 3D render + hiển thị Cash + toggle P
+local grayOverlayOn = true
+local grayGui = nil
+local grayFrame = nil
+local cashLabel = nil
+
 pcall(function()
-    local cam = workspace.CurrentCamera
-    if cam then
-        for _, v in ipairs(cam:GetChildren()) do
-            if v:IsA('BlurEffect') or v:IsA('ColorCorrectionEffect') then
-                v.Enabled = false
+    grayGui = Instance.new('ScreenGui')
+    grayGui.Name = 'GrayOverlay'
+    grayGui.ResetOnSpawn = false
+    grayGui.IgnoreGuiInset = true
+    grayGui.DisplayOrder = 2147483647
+    grayGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    grayGui.Parent = CoreGui
+
+    grayFrame = Instance.new('Frame')
+    grayFrame.Size = UDim2.fromScale(1, 1)
+    grayFrame.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
+    grayFrame.BorderSizePixel = 0
+    grayFrame.ZIndex = 2147483647
+    grayFrame.Parent = grayGui
+
+    cashLabel = Instance.new('TextLabel')
+    cashLabel.Size = UDim2.new(0, 300, 0, 60)
+    cashLabel.Position = UDim2.fromScale(0.5, 0.5)
+    cashLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    cashLabel.BackgroundTransparency = 0.3
+    cashLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    cashLabel.TextColor3 = Color3.new(1, 1, 1)
+    cashLabel.Font = Enum.Font.GothamBold
+    cashLabel.TextSize = 32
+    cashLabel.Text = '...'
+    cashLabel.ZIndex = 2147483647
+    cashLabel.Parent = grayFrame
+    local corner = Instance.new('UICorner')
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = cashLabel
+end)
+
+pcall(function()
+    RunService:Set3dRenderingEnabled(false)
+end)
+
+-- Toggle P
+pcall(function()
+    local UIS = game:GetService('UserInputService')
+    UIS.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.KeyCode == Enum.KeyCode.P then
+            grayOverlayOn = not grayOverlayOn
+            if grayFrame then grayFrame.Visible = grayOverlayOn end
+            pcall(function()
+                RunService:Set3dRenderingEnabled(not grayOverlayOn)
+            end)
+        end
+    end)
+end)
+
+
+print('[DEBUG] Script loaded')
+
+local lastPurchaseTime = tick()
+local PURCHASE_TIMEOUT = 5
+local WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1444166501941776506/L_wNj3pYsVFL5hzTwIKSFy6cMKwwvdLAIFt7fjki31iCLw9kbDnQL1X86l0rNgi6bKrh'
+local scriptStartTime = tick()
+local rebirthStartTime = nil
+local totalRebirths = 0
+local totalAnimalsPurchased = 0
+local totalAnimalsSold = 0
+local totalCoinsCollected = 0
+local wheelGuiOpen = false
+local isRebirthingNow = false
+
+local function formatTime(seconds)
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+
+    if hours > 0 then
+        return string.format('%dh %dm %ds', hours, minutes, secs)
+    elseif minutes > 0 then
+        return string.format('%dm %ds', minutes, secs)
+    else
+        return string.format('%ds', secs)
+    end
+end
+local function sendWebhook(data)
+    local success, err = pcall(function()
+        local response = request({
+            Url = WEBHOOK_URL,
+            Method = 'POST',
+            Headers = {
+                ['Content-Type'] = 'application/json',
+            },
+            Body = HttpService:JSONEncode(data),
+        })
+    end)
+
+    if not success then
+        warn('[WEBHOOK] Failed to send:', err)
+    else
+        print('[WEBHOOK] Sent successfully!')
+    end
+end
+-- ============================================================
+-- FILE HELPERS (simple .txt, mỗi dòng 1 username)
+-- ============================================================
+local REBIRTH_FILE = 'rebirth_log.txt' -- ai đã rebirth
+
+-- History file theo ngày: history_11-3.txt
+local function getTodayHistoryFile()
+    local d = os.date('*t')
+    return string.format('history_%d-%d.txt', d.day, d.month)
+end
+
+local HISTORY_FILE = getTodayHistoryFile()
+
+local function fileContainsName(path, name)
+    local ok, data = pcall(readfile, path)
+    if not ok or not data then return false end
+    for line in data:gmatch('[^\n]+') do
+        if line:gsub('%s', '') == name then return true end
+    end
+    return false
+end
+
+local function appendName(path, name)
+    local ok, data = pcall(readfile, path)
+    local content = (ok and data and data ~= '') and (data:gsub('%s+$', '') .. '\n' .. name) or name
+    pcall(writefile, path, content .. '\n')
+end
+
+-- Kick nếu acc này đã rebirth rồi vẫn chạy lại script
+local leaderstats = player:WaitForChild('leaderstats', 10)
+if leaderstats then
+    local rebirths = leaderstats:WaitForChild('Rebirths', 10)
+    if rebirths and rebirths.Value ~= 0 then
+        print('[CHECK] ' .. player.Name .. ' đã rebirth (' .. rebirths.Value .. '), kick!')
+        player:Kick('Bạn đã rebirth rồi.')
+        return
+    end
+end
+
+-- Ghi history execute (chỉ ghi 1 lần mỗi acc)
+if not fileContainsName(HISTORY_FILE, player.Name) then
+    appendName(HISTORY_FILE, player.Name)
+end
+print('[HISTORY] Logged execute for:', player.Name)
+
+-- Ghi rebirth_log.txt sau khi rebirth xong
+local function saveRebirthLog()
+    appendName(REBIRTH_FILE, player.Name)
+    print('[REBIRTH LOG] Saved rebirth for:', player.Name)
+end
+-- ============================================================
+
+local function sendRebirthComplete(timeTaken, finalBalance, rebirthNumber)
+    local totalTime = tick() - scriptStartTime
+
+    -- Lưu rebirth log JSON
+    saveRebirthLog()
+
+    local embed = {
+        embeds = {
+            {
+                title = 'Rebirth Log | Project Joiner',
+                description = '',
+                color = 5814783,
+                fields = {
+                    {
+                        name = 'Name',
+                        value = '\u{1f3ae} ' .. player.Name .. ' \u{1f3ae}',
+                        inline = true,
+                    },
+                    {
+                        name = 'Total Runtime',
+                        value = '\u{23f1}\u{fe0f} ' .. formatTime(totalTime) .. ' \u{23f1}\u{fe0f}',
+                        inline = true,
+                    },
+                },
+                footer = {
+                    text = 'Project Joiner \u{2022} ' .. os.date('%m/%d/%Y %I:%M %p'),
+                },
+                timestamp = os.date('!%Y-%m-%dT%H:%M:%S'),
+            },
+        },
+    }
+
+    sendWebhook(embed)
+end
+
+function getCurrentBase()
+    for i, v in pairs(workspace:GetDescendants())do
+        if v.Name == 'YourBase' and v.Enabled == true then
+            return v.Parent.Parent
+        end
+    end
+
+    return nil
+end
+function findFirstAncestorBasePart(instance)
+    local current = instance.Parent
+
+    while current do
+        if current:IsA('BasePart') then
+            return current
+        end
+
+        current = current.Parent
+    end
+
+    return nil
+end
+function getNearestPodium(pos, base)
+    base = base or getCurrentBase()
+
+    local Podiums = base:FindFirstChild('AnimalPodiums')
+
+    if not Podiums then
+        return nil
+    end
+
+    local nearestPodium = nil
+    local shortestDistance = math.huge
+
+    for i, v in pairs(Podiums:GetChildren())do
+        local podiumPos = v.Base.Decorations.Part.Position
+        local distance = (pos - podiumPos).Magnitude
+
+        if distance < shortestDistance then
+            shortestDistance = distance
+            nearestPodium = v
+        end
+    end
+
+    return nearestPodium and tonumber(nearestPodium.Name) or nil
+end
+function sellBrainrot(brainrot)
+    local isBrainrotName = false
+    local isNum = false
+    local base = getCurrentBase()
+
+    if base == nil then
+        print('[SELL DEBUG] No base found')
+
+        return '?'
+    end
+    if type(brainrot) == 'string' then
+        isBrainrotName = true
+    end
+    if type(brainrot) == 'number' then
+        isNum = true
+    end
+    if isNum then
+        local podiums = base:FindFirstChild('AnimalPodiums')
+
+        if not podiums then
+            print('[SELL DEBUG] No AnimalPodiums found')
+
+            return '?'
+        end
+
+        for _, v in podiums:GetChildren()do
+            if tonumber(brainrot) == tonumber(v.Name) then
+                print('[SELL DEBUG] Found podium to sell:', v.Name)
+
+                local base_part = v:FindFirstChild('Base')
+
+                if not base_part then
+                    print('[SELL DEBUG] No Base in podium')
+
+                    continue
+                end
+
+                local spawn_part = base_part:FindFirstChild('Spawn')
+
+                if not spawn_part then
+                    print('[SELL DEBUG] No Spawn in Base')
+
+                    continue
+                end
+
+                local prompts = spawn_part:FindFirstChild('PromptAttachment')
+
+                if not prompts then
+                    print('[SELL DEBUG] No PromptAttachment in Spawn')
+
+                    continue
+                end
+
+                for _, prompt in prompts:GetChildren()do
+                    if prompt:IsA('ProximityPrompt') and string.find(prompt.ActionText, 'Sell') then
+                        print('[SELL DEBUG] Firing sell prompt for podium', v.Name)
+                        fireproximityprompt(prompt)
+
+                        local max_wait = 1
+                        local start_time = tick()
+
+                        while tick() - start_time < max_wait do
+                            local confirmation_gui = lplr.PlayerGui:FindFirstChild('Confirmation')
+
+                            if confirmation_gui then
+                                local confirmation = confirmation_gui:FindFirstChild('Confirmation')
+
+                                if confirmation then
+                                    local yes_button = confirmation:FindFirstChild('Yes')
+
+                                    if yes_button then
+                                        firesignal(yes_button.Activated)
+                                        print('[SELL DEBUG] Confirmed sell for podium', v.Name)
+                                        task.wait(0.15 + math.random() * 0.1)
+
+                                        return true
+                                    end
+                                end
+                            end
+
+                            task.wait(0.03)
+                        end
+
+                        return true
+                    end
+                end
+            end
+        end
+
+        print('[SELL DEBUG] Podium not found:', brainrot)
+
+        return '?'
+    end
+    if isBrainrotName then
+        for i, v in base:GetDescendants()do
+            if v.Name == 'AnimalOverhead' then
+                local name = v:FindFirstChild('DisplayName')
+
+                if name and name.Text == tostring(brainrot) then
+                    local basePart = findFirstAncestorBasePart(name)
+
+                    if basePart then
+                        local podiumNum = getNearestPodium(basePart.Position, base)
+
+                        if podiumNum then
+                            return sellBrainrot(podiumNum)
+                        end
+                    end
+                end
             end
         end
     end
-end)
 
-print('✅ Tối ưu đồ họa + TẮT RENDER/LIGHT!')
+    return '?'
+end
 
---==================================================
--- TẮT UI GAME (GIẢM CPU)
---==================================================
-pcall(function()
-    -- Tắt tất cả UI của Roblox trong CoreGui
-    game:GetService("CoreGui").RobloxPromptGui.Enabled = false
-    
-    -- Tắt thêm các UI khác nếu có
-    pcall(function() game:GetService("CoreGui").RobloxGui.Enabled = false end)
-    pcall(function() game:GetService("CoreGui").TopBarApp.Enabled = false end)
-    pcall(function() game:GetService("CoreGui").PlayerList.Enabled = false end)
-    pcall(function() game:GetService("CoreGui").ChatApp.Enabled = false end)
-    
-    print('✅ Đã tắt UI game!')
-end)
+local function waitForPath(parent, ...)
+    local cur = parent
 
---==================================================
--- WHITE SCREEN + TIMER
---==================================================
-local WHITE_ON_START = true
-local TOGGLE_KEY = Enum.KeyCode.P
-local WhiteGui, WhiteFrame, TimerLabel, WhiteOn = nil, nil, nil, false
-local startTime = tick()
+    for _, name in ipairs({...})do
+        repeat
+            task.wait()
+        until cur and cur:FindFirstChild(name)
 
-local function ensureWhite()
-    if WhiteGui and WhiteGui.Parent then return end
-    
-    -- Thử CoreGui trước (render trên mọi UI)
-    local targetParent = nil
-    pcall(function()
-        targetParent = CoreGui
-    end)
-    
-    -- Nếu không có quyền CoreGui, fallback về PlayerGui
-    if not targetParent then
-        targetParent = LP:WaitForChild('PlayerGui', 10)
-        if not targetParent then return end
+        cur = cur:FindFirstChild(name)
     end
 
-    WhiteGui = Instance.new('ScreenGui')
-    WhiteGui.Name = 'WhiteOverlay'
-    WhiteGui.ResetOnSpawn = false
-    WhiteGui.IgnoreGuiInset = true
-    WhiteGui.DisplayOrder = 2147483647  -- Max DisplayOrder để đứng trên tất cả UI
-    WhiteGui.ZIndexBehavior = Enum.ZIndexBehavior.Global  -- Dùng ZIndex global
-    WhiteGui.Parent = targetParent
-
-    WhiteFrame = Instance.new('Frame')
-    WhiteFrame.Size = UDim2.fromScale(1, 1)
-    WhiteFrame.Position = UDim2.fromScale(0, 0)  -- Đảm bảo vị trí 0,0
-    WhiteFrame.BackgroundColor3 = Color3.fromRGB(128, 128, 128)  -- Màu xám
-    WhiteFrame.BorderSizePixel = 0
-    WhiteFrame.ZIndex = 2147483647  -- Max ZIndex
-    WhiteFrame.Visible = false
-    WhiteFrame.Parent = WhiteGui
-
-    TimerLabel = Instance.new('TextLabel')
-    TimerLabel.Size = UDim2.new(0, 300, 0, 100)
-    TimerLabel.Position = UDim2.fromScale(0.5, 0.5)
-    TimerLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-    TimerLabel.BackgroundTransparency = 1
-    TimerLabel.Text = '00:00:00'
-    TimerLabel.TextColor3 = Color3.new(1, 1, 1)  -- Màu trắng
-    TimerLabel.TextSize = 48
-    TimerLabel.Font = Enum.Font.GothamBold
-    TimerLabel.ZIndex = 2147483647  -- Max ZIndex cho text
-    TimerLabel.Parent = WhiteFrame
-    
-    print('✅ White screen tạo ở:', targetParent.Name)
+    return cur
 end
+local function isBasePart(x)
+    return typeof(x) == 'Instance' and x:IsA('BasePart')
+end
+local function ensureChar()
+    local c = player.Character or player.CharacterAdded:Wait()
+    local h = c:FindFirstChildOfClass('Humanoid') or c:WaitForChild('Humanoid', 5)
+    local hrp = c:FindFirstChild('HumanoidRootPart') or c.PrimaryPart
 
-local function setWhite(b)
-    if not (WhiteGui and WhiteGui.Parent) then ensureWhite() end
-    WhiteOn = b and true or false
-    if WhiteFrame then WhiteFrame.Visible = WhiteOn end
+    return c, h, hrp
+end
+local function spamJump(times)
+    times = times or 10
+
+    local _, hum, hrp = ensureChar()
+
+    if not hum or not hrp then
+        return
+    end
+
+    print('[DEBUG] spamJump: Instant kill')
     pcall(function()
-        game:GetService("RunService"):Set3dRenderingEnabled(not WhiteOn)
+        hum.Health = 0
     end)
+    print('[DEBUG] spamJump: Waiting for respawn')
+
+    -- Dùng timeout 5s tránh block mãi nếu CharacterAdded không fire
+    local respawned = false
+    local conn
+    conn = player.CharacterAdded:Connect(function()
+        respawned = true
+    end)
+    local t0 = tick()
+    while not respawned and tick() - t0 < 5 do
+        task.wait(0.1)
+    end
+    conn:Disconnect()
+
+    task.wait(1)
+    print('[DEBUG] spamJump: Respawned')
+end
+local function walkToDynamic(target, reach, timeout, jumpWhileWalking)
+    reach = reach or 3
+    timeout = timeout or 35
+
+    local _, hum, hrp = ensureChar()
+    if not hum or not hrp then
+        print('[DEBUG] walkToDynamic: No humanoid or root part')
+        return false
+    end
+
+    local t0 = tick()
+    local lastPos = hrp.Position
+    local lastMoveTime = tick()
+    local stuckCount = 0
+
+    while tick() - t0 < timeout do
+        if not target or not target.Parent then
+            print('[DEBUG] walkToDynamic: Target lost')
+            return false
+        end
+
+        local pos
+        if target:IsA('ProximityPrompt') then
+            local att = target.Parent
+            if att and att:IsA('Attachment') then
+                pos = att.WorldPosition
+            elseif att and att:IsA('BasePart') then
+                pos = att.Position
+            end
+        elseif isBasePart(target) then
+            pos = target.Position
+        end
+
+        if not pos then
+            print('[DEBUG] walkToDynamic: No position found')
+            return false
+        end
+
+        if (hrp.Position - pos).Magnitude <= reach then
+            print('[DEBUG] walkToDynamic: Reached target')
+            return true
+        end
+
+        pcall(function() hum:MoveTo(pos) end)
+
+        if jumpWhileWalking then
+            hum.Jump = true
+        end
+
+        local now = tick()
+        local moved = (hrp.Position - lastPos).Magnitude
+        if moved > 0.8 then
+            lastPos = hrp.Position
+            lastMoveTime = now
+            stuckCount = math.max(0, stuckCount - 1)
+        elseif now - lastMoveTime >= 1.5 then
+            stuckCount = stuckCount + 1
+            lastMoveTime = now
+            print('[NAV] Stuck count:', stuckCount)
+            if stuckCount <= 3 then
+                pcall(function() hum.Jump = true end)
+                task.wait(0.4)
+            elseif stuckCount > 6 then
+                print('[NAV] Respawning to unstuck...')
+                stuckCount = 0
+                pcall(function() hum.Health = 0 end)
+                local respawned = false
+                local conn = player.CharacterAdded:Connect(function() respawned = true end)
+                local t0 = tick()
+                while not respawned and tick() - t0 < 5 do task.wait(0.1) end
+                conn:Disconnect()
+                task.wait(1.5)
+                _, hum, hrp = ensureChar()
+                if not hum or not hrp then return false end
+                lastPos = hrp.Position
+                lastMoveTime = tick()
+            end
+        end
+
+        task.wait(0.15 + math.random() * 0.05)
+    end
+
+    print('[DEBUG] walkToDynamic: Timeout')
+    return false
+end
+local function firePrompt(prompt, tries)
+    if not prompt or not prompt.Parent then
+        print('[DEBUG] firePrompt: No prompt')
+
+        return false
+    end
+
+    tries = tries or 3
+
+    for _ = 1, tries do
+        local ok = pcall(function()
+            fireproximityprompt(prompt)
+            task.wait(0.1)
+        end)
+
+        if ok then
+            print('[DEBUG] firePrompt: Fired successfully')
+
+            return true
+        end
+
+        task.wait(0.1)
+    end
+
+    print('[DEBUG] firePrompt: Failed')
+
+    return false
+end
+local function parsePrice(txt)
+    if not txt then
+        return math.huge
+    end
+
+    local s = tostring(txt):upper():gsub('%$', ''):gsub(',', '')
+    local n = tonumber((s:match('[%d%.]+'))) or 0
+
+    if s:find('K') then
+        n = n * 1000
+    end
+    if s:find('M') then
+        n = n * 1000000
+    end
+    if s:find('B') then
+        n = n * 1000000000
+    end
+
+    return n
 end
 
-pcall(function()
-    UIS.InputBegan:Connect(function(input, gpe)
-        if not gpe and input.KeyCode == TOGGLE_KEY then
-            setWhite(not WhiteOn)
-        end
-    end)
-end)
+local function parseCash(cashValue)
+    if not cashValue then return 0 end
+    local txt = tostring(cashValue):upper():gsub('%$', ''):gsub(',', '')
+    local n = tonumber((txt:match('[%d%.]+'))) or 0
+    
+    if txt:find('K') then
+        n = n * 1000
+    end
+    if txt:find('M') then
+        n = n * 1000000
+    end
+    if txt:find('B') then
+        n = n * 1000000000
+    end
+    
+    return n
+end
 
-if WHITE_ON_START then setWhite(true) end
+local function isPurchased(model)
+    local part = model:FindFirstChild('Part') or model:FindFirstChild('HumanoidRootPart')
+
+    if not isBasePart(part) then
+        return false
+    end
+
+    local xPos = part.Position.X
+
+    if xPos >= -420 and xPos <= -400 then
+        print('[DEBUG] isPurchased: Animal available for purchase, X =', xPos)
+
+        return false
+    end
+
+    print('[DEBUG] isPurchased: Animal already purchased, X =', xPos)
+
+    return true
+end
+local function getOverheadInfo(animalPosition)
+    local debris = Workspace:FindFirstChild('Debris')
+
+    if not debris then
+        print('[DEBUG] getOverheadInfo: No Debris folder')
+
+        return nil, math.huge, 0
+    end
+
+    local closestOverhead = nil
+    local closestDistance = math.huge
+
+    for _, obj in ipairs(debris:GetChildren())do
+        if obj.Name == 'FastOverheadTemplate' and isBasePart(obj) then
+            local distance = (obj.Position - animalPosition).Magnitude
+
+            if distance < closestDistance and distance < 10 then
+                closestDistance = distance
+                closestOverhead = obj
+            end
+        end
+    end
+
+    if not closestOverhead then
+        return nil, math.huge, 0
+    end
+
+    local gui = closestOverhead:FindFirstChild('AnimalOverhead')
+
+    if not gui then
+        return nil, math.huge, 0
+    end
+
+    local displayName = gui:FindFirstChild('DisplayName')
+    local priceLabel = gui:FindFirstChild('Price')
+    local generationLabel = gui:FindFirstChild('Generation')
+    local name = displayName and displayName.Text or ''
+    local price = priceLabel and parsePrice(priceLabel.Text) or math.huge
+    local generation = generationLabel and parsePrice(generationLabel.Text) or 0
+
+    return name, price, generation
+end
+local function checkNeedMoreRoom()
+    local notification_gui = lplr.PlayerGui:FindFirstChild('Notification')
+
+    if notification_gui then
+        local notification_frame = notification_gui:FindFirstChild('Notification')
+
+        if notification_frame then
+            for _, child in ipairs(notification_frame:GetChildren())do
+                if child:IsA('TextLabel') and string.find(child.Text, 'need more room') then
+                    print("[DEBUG] checkNeedMoreRoom: Detected 'need more room' notification")
+
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+print('[DEBUG] Waiting for leaderstats')
+
+local leaderstats = waitForPath(player, 'leaderstats')
+local cashValue
 
 task.spawn(function()
-    while task.wait(1) do
-        if TimerLabel then
-            local elapsed = tick() - startTime
-            TimerLabel.Text = string.format('%02d:%02d:%02d', 
-                math.floor(elapsed/3600), 
-                math.floor((elapsed%3600)/60), 
-                math.floor(elapsed%60))
+    while true do
+        if player:FindFirstChild('leaderstats') then
+            cashValue = player.leaderstats:FindFirstChild('Cash')
+            
+            -- Update ngay lần đầu
+            if cashValue and cashLabel then
+                pcall(function()
+                    local cash = cashValue.Value
+                    if cash then
+                        local cashNum = parseCash(cash)
+                        cashLabel.Text = tostring(math.floor(cashNum))
+                    end
+                end)
+            end
         end
+
+        task.wait(1)
     end
 end)
 
---==================================================
--- TARGET LISTS
---==================================================
-local targets1 = {
-    'Chipso and Queso','La Casa Boo','Tang Tang Keletang','Headless Horseman',
-    'Strawberry Elephant',
-    'Nuclearo Dinossauro','Esok Sekolah','Ketupat Kepat',
-    'Money Money Puggy','Tictac Sahur','Ketchuru and Musturu','Garama and Madundung',
-    'Spaghetti Tualetti','Dragon Cannelloni','Tacorita Bicicleta',
-    'La Extinct Grande','Las Sis','Celularcini Viciosini','Los Bros','Tralaledon',
-    'Los Tacoritas','Los Primos','Chillin Chili','Los Combinasionas','Los Hotspotsitos',
-    'La Supreme Combinasion','Los 67','La Secret Combinasion','Burguro And Fryuro',
-    'La Spooky Grande','Los Mobilis','Eviledon','Spooky and Pumpky',
-    'Mieteteira Bicicleteira','Los Spooky Combinasionas','Meowl','La Taco Combinasion',
-    'Mariachi Corazoni','Los Puggies','Los Spaghettis','Fragrama and Chocrama',
-    'Capitano Moby','Swag Soda','Orcaledon','Los Planitos','W or L',
-    'Gobblino Uniciclino','Lavadorito Spinito','Cooki and Milki','Guest 666',
-    'La Jolly Grande','Chicleteira Noelteira','Festive 67','Reinito Sleighito',
-    'Los 25','Los candies','La Ginger Sekolah','Swaggy Bros','Dragon Gingerini',
-    'Money Money Reindeer','Jolly Jolly Sahur',
-    'Ginger Gerat','Los Jolly Combnasionas','Tuff Toucan','Skibidi Toilet',
-    'Cerberus','Spinny Hammy','Bacuru and Egguru','Ketupat Bros','Hydra Dragon Cannelloni',
-    'Popcuru and Fizzuru','La Grande Combinasion','Chicleteira Cupideira','Rosetti Tualetti','Rosey and Teddy','Lovin Rose',
-    'Love Love Bear','La Romantic Grande','Fishino Clownino','Los Sweethearts',
-    'Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
-    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Los Cupids','Cloverat Clapat','Fortunu and Coinuru',
-}
-local targetsVIP = {
-    'Chipso and Queso','La Casa Boo','Headless Horseman',
-    'Strawberry Elephant','Ketupat Kepat',
-    'Tictac Sahur','Ketchuru and Musturu','Garama and Madundung',
-    'Dragon Cannelloni',
-
-    'Celularcini Viciosini','Los Bros','Tralaledon','Los Tacoritas','Los Primos',
-    'Chillin Chili','Los Hotspotsitos','La Supreme Combinasion','La Secret Combinasion',
-    'Burguro And Fryuro','Eviledon','Spooky and Pumpky','Meowl',
-    'La Taco Combinasion','Los Spaghettis','Fragrama and Chocrama','Capitano Moby',
-    'Orcaledon','W or L','Lavadorito Spinito','Cooki and Milki',
-    'Guest 666','Festive 67','Reinito Sleighito','La Ginger Sekolah',
-    'Swaggy Bros','Dragon Gingerini','Jolly Jolly Sahur','Skibidi Toilet',
-    'Ginger Gerat','Cerberus',
-    'Ketupat Bros','Hydra Dragon Cannelloni','Popcuru and Fizzuru','Rosetti Tualetti','Rosey and Teddy','Love Love Bear',
-    'La Romantic Grande','Fishino Clownino','Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
-    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Cloverat Clapat','Fortunu and Coinuru',
-}
-
-local targets2 = {
-    'La Vacca Saturno Saturnita','Los Matteos','1x1x1x1','Torrtuginni Dragonfrutini',
-    'Los Tralaleritos','Los Spyderinis','Las Tralaleritas','Job Job Job Sahur',
-    'Tung Tung Tung Sahur','Noo my examine','Las Vaquitas Saturnitas','Graipuss Medussi',
-    'To to to Sahur','Pot Hotspot','Chicleteirina Bicicleteirina','Guerriro Digitale',
-    'Quesadilla Crocodila','Los Nooo My Hotspotsitos','Burrito Bandito','Mummy Ambalabu',
-    'Jackorilla','Pumpkini Spyderini','Trickolino','Telemorte','Los Jobcitos',
-    'Los Tortus','Los Chihuaninis','Los Cucarachas','Los Quesadillas','Los Burritos',
-    'Triplito Tralaleritos','Santa Hotspot','25','Extinct Tralalero','Extinct Matteo',
-    'Quesadillo Vampiro','Zombie Tralala','Frankentteo','La Vacca Jacko Linterino',
-    'Reindeer Tralala','Santteo','List List List Sahur','Puffaball','Los Karkeritos',
-    'Agarrini La Palini','Fragola La La La','Trenostruzzo Turbo 4000',
-    'La Sahur Combinasion','La Karkerkar Combinasion','Vulturino Skeletono',
-    'Pirulitoita Bicicleteira','La Vacca Prese Presente','Ho Ho Ho Sahur',
-    'Please my Present','Matteo','Sammyni Spyderini','Dul Dul Dul','Orcalero Orcala',
-    'List list list sahur','TooTini Shrimpini','Rocco Disco','Bunito Bunito Spinito','67',
-    'Los Trios','Chill Puppy','Mi Gatito','Chicleteira Bicicleteira','Los Chicleteiras','Donkeyturbo Express','Noo my Heart', 
-}
-
-local targetDict1, targetDictVIP, targetDict2 = {}, {}, {}
-for _, n in ipairs(targets1) do targetDict1[string.lower(n)] = true end
-for _, n in ipairs(targetsVIP) do targetDictVIP[string.lower(n)] = true end
-for _, n in ipairs(targets2) do targetDict2[string.lower(n)] = true end
-
---==================================================
--- WEBSOCKET HOPPER
---==================================================
-_G.hopperRunning = false
-_G._hopperKill = nil  -- function để kill socket từ bên ngoài
-
-_G.StopHopper = function()
-    _G.hopperRunning = false
-    -- Nếu socket đang connected → đóng ngay
-    if _G._hopperKill then
-        _G._hopperKill()
-        _G._hopperKill = nil
-    end
-end
-
-_G.StartHopper = function()
-    -- Nếu đang có hopper chạy, dừng cái cũ trước
-    _G.hopperRunning = true
-
-    -- DELAY RANDOM 4-20s TRƯỚC KHI KẾT NỐI
-    local delayTime = 4 + math.random() * 16
-    print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
-    task.wait(delayTime)
-    
-    -- Kiểm tra sau delay: nếu bị cancel (StopHopper gọi) thì không connect
-    if not _G.hopperRunning then
-        warn("🛑 Hopper bị cancel trước khi kết nối (target found)")
-        return
-    end
-    
-    print("🌐 WebSocket Hopper Starting...")
-    print("📡 Server:", WS_URL)
-    
-    local RECONNECT_DELAY = 2
-    local PING_INTERVAL = 10
-    local MAX_RECONNECT = 20  -- Tăng lên 20 để không bị dừng sớm
-    
-    local socket = nil
-    local isConnected = false
-    local lastJobId = nil
-    local connectionAttempts = 0
-    local stopReconnect = false
-    local hopperActive = true  -- Flag tổng, set false khi 180s timeout
-    
-    -- Expose kill function để StopHopper có thể đóng socket từ bên ngoài
-    _G._hopperKill = function()
-        hopperActive = false
-        stopReconnect = true
-        isConnected = false
-        if socket then
-            pcall(function() socket:Close() end)
-            socket = nil
-        end
-        warn("🛑 Hopper killed (target detected giữa chừng)")
-    end
-    
-    -- Timeout 180s không chuyển server → ngắt tất cả kết nối
-    task.spawn(function()
-        task.wait(180)
-        if hopperActive and _G.hopperRunning then
-            warn("⚠️ 180s timeout - ngắt tất cả kết nối...")
-            hopperActive = false
-            stopReconnect = true
-            if socket then
-                pcall(function() socket:Close() end)
-            end
-            isConnected = false
-            socket = nil
-        end
-    end)
-    
-    local function sendMessage(data)
-        if not isConnected or not socket then return false end
-        local ok = pcall(function() 
-            socket:Send(HttpService:JSONEncode(data)) 
-        end)
-        return ok
-    end
-    
-    local function requestNextJob()
-        if isConnected then
-            print("📨 Requesting next job...")
-            sendMessage({action = "next"})
-        end
-    end
-    
-    local function onMessage(msg)
-        print("📩 Received:", string.sub(msg, 1, 100))
-        
-        local ok, data = pcall(function() return HttpService:JSONDecode(msg) end)
-        if not ok or not data then 
-            warn("❌ Failed to decode message!")
-            return 
-        end
-        
-        local t = data.type
-        print("📦 Message type:", t)
-        
-        if t == "welcome" then
-            print("✅ Connected to server! PlaceId:", data.placeId)
-            connectionAttempts = 0  -- Reset khi nhận welcome thành công
-            sendMessage({action = "register", username = LP.Name, userId = LP.UserId})
-            
-        elseif t == "registered" then
-            print("✅", data.message or "Registered")
-            task.delay(0.5, function()
-                print("📨 First job request...")
-                sendMessage({action = "next"})
-            end)
-            
-        elseif t == "job" then
-            print("🎯 Received job response!")
-            if data.jobId then
-                print("🎯 JobId:", data.jobId)
-                if data.jobId ~= lastJobId then
-                    lastJobId = data.jobId
-                    print("🚀 Teleporting...")
-                    -- Teleport → Roblox sẽ disconnect WS, OnClose sẽ reconnect
-                    -- Không cần request next sau teleport vì script restart ở server mới
-                    pcall(function()
-                        TeleportService:TeleportToPlaceInstance(data.placeId, data.jobId, LP)
-                    end)
-                    -- Nếu teleport fail (pcall bắt được lỗi), request job tiếp
-                    task.delay(3, function()
-                        if isConnected then
-                            print("📨 Teleport có thể failed, requesting next job...")
-                            sendMessage({action = "next"})
-                        end
-                    end)
-                else
-                    print("⚠️ Same JobId, skipping → request next...")
-                    task.delay(0.5, function()
-                        requestNextJob()
-                    end)
-                end
-            else
-                -- jobId nil → server trả message không có job
-                print("⚠️", data.message or "No job available")
-                task.delay(5, function()
-                    if isConnected then
-                        print("📨 Retry requesting job...")
-                        sendMessage({action = "next"})
-                    end
-                end)
-            end
-            
-        elseif t == "wait" then
-            -- ✅ FIX BUG CHÍNH: Server báo queue rỗng, chờ rồi retry
-            local waitSecs = (data.seconds or 3) + 1  -- +1s buffer
-            print(string.format("⏳ Server yêu cầu chờ %ds rồi retry...", waitSecs))
-            task.delay(waitSecs, function()
-                if isConnected then
-                    print("📨 Retry after wait...")
-                    sendMessage({action = "next"})
-                end
-            end)
-            
-        elseif t == "queue_refreshed" then
-            print("♻️ Queue refreshed:", data.queue_size or "?")
-            -- Queue có data mới → request ngay
-            task.delay(0.5, function()
-                if isConnected then
-                    requestNextJob()
-                end
-            end)
-            
-        elseif t == "pong" then
-            -- OK, ping-pong hoạt động
-            
-        elseif t == "status" then
-            print(string.format("📊 Q=%d C=%d", data.queue or 0, data.clients or 0))
-            
-        elseif t == "error" then
-            warn("❌ Server error:", data.message or "unknown")
-            -- Retry sau lỗi
-            task.delay(3, function()
-                if isConnected then
-                    sendMessage({action = "next"})
-                end
-            end)
-        else
-            print("❓ Unknown type:", t)
-        end
-    end
-    
-    local connectWS  -- forward declare
-    
-    connectWS = function()
-        if stopReconnect or not hopperActive then
-            warn("🛑 Hopper đã dừng, không reconnect")
-            return
-        end
-        
-        -- Đóng socket cũ
-        if socket then 
-            pcall(function() socket:Close() end) 
-        end
-        socket = nil
-        isConnected = false
-        
-        connectionAttempts = connectionAttempts + 1
-        
-        if connectionAttempts > MAX_RECONNECT then
-            warn("❌ Đã thử " .. MAX_RECONNECT .. " lần, dừng lại")
-            return
-        end
-        
-        print(string.format("🔄 [Attempt %d/%d] Connecting to: %s", connectionAttempts, MAX_RECONNECT, WS_URL))
-        
-        local connectSuccess = false
-        local connectError = nil
-        local receivedWelcome = false
-        local onCloseRegistered = false
-        
-        task.spawn(function()
-            local ok, ws = pcall(function()
-                return wsConnect(WS_URL)
-            end)
-            
-            if ok and ws then
-                socket = ws
-                isConnected = true
-                connectSuccess = true
-                print("🔗 WebSocket Connected!")
-                
-                -- OnMessage
-                pcall(function()
-                    if socket.OnMessage then
-                        socket.OnMessage:Connect(function(msg)
-                            pcall(function() 
-                                if string.find(msg, '"welcome"') then
-                                    receivedWelcome = true
-                                end
-                                onMessage(msg) 
-                            end)
-                        end)
-                    end
-                end)
-                
-                -- OnClose - luôn reconnect trừ khi stopReconnect
-                pcall(function()
-                    if socket.OnClose then
-                        onCloseRegistered = true
-                        socket.OnClose:Connect(function()
-                            print("🔌 Disconnected! (attempt=" .. connectionAttempts .. ")")
-                            isConnected = false
-                            socket = nil
-                            if not stopReconnect and hopperActive then
-                                -- Reset attempts để reconnect không bị count sai
-                                -- Giữ nguyên connectionAttempts để track số lần reconnect
-                                local delay = math.min(RECONNECT_DELAY * connectionAttempts, 10)
-                                print(string.format("🔄 Reconnecting in %.1fs...", delay))
-                                task.wait(delay)
-                                connectWS()
-                            else
-                                warn("🛑 Không reconnect (stopReconnect=" .. tostring(stopReconnect) .. ")")
-                            end
-                        end)
-                    end
-                end)
-            else
-                connectError = tostring(ws)
-                print("❌ Connect failed:", connectError)
-            end
-        end)
-        
-        -- Chờ tối đa 8 giây cho connection
-        local waited = 0
-        while not connectSuccess and not connectError and waited < 8 do
-            task.wait(0.5)
-            waited = waited + 0.5
-        end
-        
-        if not connectSuccess then
-            warn("❌ Connection timeout/failed! " .. (connectError or "No response after 8s"))
-            if not stopReconnect and hopperActive and connectionAttempts < MAX_RECONNECT then
-                local delay = math.min(RECONNECT_DELAY * connectionAttempts, 10)
-                task.wait(delay)
-                return connectWS()
-            end
-            return
-        end
-        
-        -- Chờ welcome tối đa 15s
-        task.spawn(function()
-            task.wait(15)
-            if isConnected and not receivedWelcome then
-                warn("⚠️ 15s không nhận welcome, reconnecting...")
-                if socket then
-                    pcall(function() socket:Close() end)
-                end
-            end
-        end)
-    end
-    
-    -- Ping loop
-    task.spawn(function()
-        while hopperActive do
-            task.wait(PING_INTERVAL)
-            if isConnected then 
-                sendMessage({action = "ping"}) 
-            end
-        end
-    end)
-    
-    -- Connect
-    connectWS()
-end
-
---==================================================
--- WEBHOOKS
---==================================================
--- Delay 3s
-local webhook1 = 'https://discordapp.com/api/webhooks/1466074844948074702/1Lx_6FHMHIfOqk8Exm24oKvHzwGWkYCN38yRL5SNDa3-LYVFcViM1pmyD7oPLWNI2F7R'
--- No delay
-local webhook2 = 'https://discordapp.com/api/webhooks/1467282601717928174/KlzAgogUd0sCHnF2o6yNSXPKuNH6HIGttbRnJfWAM4FWms-RCaVXnUnLjC3ygMBDZt-M'
--- Normal secret
-local webhook3 = 'https://discordapp.com/api/webhooks/1466274977925038132/YQfTcw1LFFJlORyo_jyy3U3opKX3f4anSkGusINqJAjpQ1AIutK0yUvLI58NnQM8A4xM'
-
-local lastJobIdSent = nil
-
-local function sendWebhook1(foundTargets)
-    if not foundTargets or #foundTargets == 0 then return end
-    local placeId = game.PlaceId
-    local jobId = game.JobId
-    if jobId == lastJobIdSent then return end
-    lastJobIdSent = jobId
-
-    local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
-    local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
-
-    local targetList = ''
-    local hasVIP = false
-    for i, target in ipairs(foundTargets) do
-        local lowerName = string.lower(target.name or "")
-        local emoji = targetDictVIP[lowerName] and '🐱' or '✅'
-        if targetDictVIP[lowerName] then hasVIP = true end
-        targetList ..= emoji .. ' ' .. (target.name or 'Unknown') .. ' - ' .. (target.price or "$0/s")
-        if i < #foundTargets then targetList ..= '\n' end
-    end
-
-    local content = hasVIP and '@here **VIP TARGET DETECTED!** 🐱' or ''
-
-    local payload = {
-        ['content'] = content,
-        ['embeds'] = {{
-            ['title'] = '🎯 Target 1 Detected!',
-            ['description'] = targetList,
-            ['color'] = 0x00FF00,
-            ['fields'] = {
-                { ['name'] = '👥 Players', ['value'] = tostring(#Players:GetPlayers()) .. ' / ' .. tostring(Players.MaxPlayers), ['inline'] = true },
-                { ['name'] = '🆔 JobId', ['value'] = '`' .. jobId .. '`', ['inline'] = false },
-                { ['name'] = '🌐 Join Link', ['value'] = '[Join Server](' .. joinLink .. ')', ['inline'] = false },
-                { ['name'] = '📜 Join Script', ['value'] = '```lua\n' .. joinScript .. '\n```', ['inline'] = false },
-            },
-            ['footer'] = { ['text'] = 'CT Scanner | User: ' .. LP.Name .. ' | GMT+7' },
-            ['timestamp'] = DateTime.now():ToIsoDate(),
-        }}
-    }
-
-    local jsonPayload = HttpService:JSONEncode(payload)
-    local webhook1Sent = false
-
-    -- NẾU CÓ VIP → GỬI WEBHOOK, START HOPPER, RỒI KICK NGAY
-    if hasVIP then
-        print('🐱 VIP TARGET DETECTED! Gửi webhook + hopper + kick...')
-        
-        -- Gửi cả 2 webhook cùng lúc
-        task.spawn(function()
-            pcall(function()
-                http_request({
-                    Url = webhook2,
-                    Method = 'POST',
-                    Headers = { ['Content-Type'] = 'application/json' },
-                    Body = jsonPayload,
-                })
-                print('✅ Webhook2 sent (VIP)')
-            end)
-        end)
-        
-        task.spawn(function()
-            pcall(function()
-                http_request({
-                    Url = webhook1,
-                    Method = 'POST',
-                    Headers = { ['Content-Type'] = 'application/json' },
-                    Body = jsonPayload,
-                })
-                print('✅ Webhook1 sent (VIP)')
-            end)
-        end)
-        
-        -- Kick NGAY (không chờ StartHopper delay)
-        task.delay(0.3, function()
-            LP:Kick("🐱 VIP TARGET FOUND! Check Discord!")
-        end)
-        
-        -- Chỉ start hopper nếu chưa chạy (không reset delay đang có)
-        if not _G.hopperRunning then
-            task.spawn(_G.StartHopper)
-        end
-        return
-    end
-
-    -- KHÔNG PHẢI VIP → Logic bình thường (delay 3s)
-    local function sendWithTimeout(url, name, isWebhook1)
-        task.spawn(function()
-            pcall(function()
-                http_request({
-                    Url = url,
-                    Method = 'POST',
-                    Headers = { ['Content-Type'] = 'application/json' },
-                    Body = jsonPayload,
-                })
-                print('✅ ' .. name .. ' sent')
-                if isWebhook1 and not webhook1Sent then
-                    webhook1Sent = true
-                    print('🎯 Webhook1 sent, loading hopper...')
-                    if not _G.hopperRunning then
-                        _G.StartHopper()
-                    end
-                end
-            end)
-        end)
-    end
-
-    sendWithTimeout(webhook2, 'Webhook2', false)
-    task.delay(3, function() sendWithTimeout(webhook1, 'Webhook1', true) end)
-    task.delay(15, function()
-        if not webhook1Sent then
-            warn('⚠️ Webhook1 timeout, starting hopper...')
-            webhook1Sent = true
-            if not _G.hopperRunning then
-                _G.StartHopper()
-            end
-        end
-    end)
-end
-
-
-local function sendWebhook2(foundTargets)
-    if not foundTargets or #foundTargets == 0 then return end
-    local placeId = game.PlaceId
-    local jobId = game.JobId
-    if jobId == lastJobIdSent then return end
-    lastJobIdSent = jobId
-
-    local joinScript = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. placeId .. ", '" .. jobId .. "', game.Players.LocalPlayer)"
-    local joinLink = 'https://chillihub1.github.io/chillihub-joiner/?placeId=' .. placeId .. '&gameInstanceId=' .. jobId
-
-    local targetList = ''
-    for i, target in ipairs(foundTargets) do
-        targetList ..= '✅ ' .. (target.name or 'Unknown') .. ' - ' .. (target.price or "$0/s")
-        if i < #foundTargets then targetList ..= '\n' end
-    end
-
-    local payload = {
-        ['embeds'] = {{
-            ['title'] = '🎯 Target 2 Detected!',
-            ['description'] = targetList,
-            ['color'] = 0xFFFF00,
-            ['fields'] = {
-                { ['name'] = '👥 Players', ['value'] = tostring(#Players:GetPlayers()) .. ' / ' .. tostring(Players.MaxPlayers), ['inline'] = true },
-                { ['name'] = '🆔 JobId', ['value'] = '`' .. jobId .. '`', ['inline'] = false },
-                { ['name'] = '🌐 Join Link', ['value'] = '[Join Server](' .. joinLink .. ')', ['inline'] = false },
-                { ['name'] = '📜 Join Script', ['value'] = '```lua\n' .. joinScript .. '\n```', ['inline'] = false },
-            },
-            ['footer'] = { ['text'] = 'CT Scanner | User: ' .. LP.Name .. ' | GMT+7' },
-            ['timestamp'] = DateTime.now():ToIsoDate(),
-        }}
-    }
-
-    local jsonPayload = HttpService:JSONEncode(payload)
-    local webhook3Sent = false
-
-    task.spawn(function()
+-- Update cash label mỗi 10s
+task.spawn(function()
+    while true do
+        task.wait(10)
         pcall(function()
-            http_request({
-                Url = webhook3,
-                Method = 'POST',
-                Headers = { ['Content-Type'] = 'application/json' },
-                Body = jsonPayload,
-            })
-            print('✅ Webhook3 sent (Target 2)')
-            if not webhook3Sent then
-                webhook3Sent = true
-                print('🎯 Webhook3 sent, loading hopper...')
-                if not _G.hopperRunning then
-                    _G.StartHopper()
+            if cashValue and cashLabel then
+                local cash = cashValue.Value
+                if cash then
+                    local cashNum = parseCash(cash)
+                    cashLabel.Text = tostring(math.floor(cashNum))
                 end
             end
         end)
-    end)
+    end
+end)
 
-    task.delay(15, function()
-        if not webhook3Sent then
-            warn('⚠️ Webhook3 timeout, starting hopper...')
-            webhook3Sent = true
-            if not _G.hopperRunning then
-                _G.StartHopper()
-            end
-        end
-    end)
+if player.leaderstats:FindFirstChild('Rebirths') then
+    local rebirths = player.leaderstats.Rebirths.Value
+
+    if rebirths >= 1 then
+        print('[DEBUG] Already at rebirth', rebirths, '- shutting down')
+        game:Shutdown()
+
+        return
+    end
 end
 
---==================================================
--- QUÉT TARGET
---==================================================
-print('✅ Using Debris method for pet detection!')
+print('[DEBUG] Waiting for plots')
 
-local function getValidTargetInfo(targetName)
-    local debris = workspace:FindFirstChild('Debris')
-    if not debris then return nil end
-    
-    local lower = string.lower(targetName)
-    for _, d in pairs(debris:GetDescendants()) do
-        if d:IsA('TextLabel') and d.Name == "DisplayName" then
-            if string.lower(d.Text or ""):find(lower) then
-                local parent = d.Parent
-                if parent then
-                    local isFusing = false
-                    for _, c in pairs(parent:GetChildren()) do
-                        if c:IsA('TextLabel') and c.Name == "Stolen" and string.upper(c.Text or "") == "FUSING" then
-                            isFusing = true
-                            break
-                        end
-                    end
-                    if not isFusing then
-                        for _, c in pairs(parent:GetChildren()) do
-                            if c:IsA('TextLabel') then
-                                local n = string.lower(c.Name or "")
-                                if n:find("generation") or n:find("price") then
-                                    return {name = targetName, price = c.Text or "???"}
+local plots = waitForPath(Workspace, 'Plots')
+
+local function findMyPlot()
+    for _, plot in ipairs(plots:GetChildren())do
+        local ok, text = pcall(function()
+            local sign = plot:FindFirstChild('PlotSign')
+            local gui = sign and sign:FindFirstChild('SurfaceGui')
+            local frame = gui and gui:FindFirstChild('Frame')
+            local label = frame and frame:FindFirstChild('TextLabel')
+
+            return label and label.Text
+        end)
+
+        if ok and text == (player.Name .. "'s Base") then
+            print('[DEBUG] findMyPlot: Found plot')
+
+            return plot
+        end
+    end
+
+    print('[DEBUG] findMyPlot: No plot found')
+end
+local function ensureMyPlot()
+    local p = findMyPlot()
+
+    while not p do
+        print('[DEBUG] ensureMyPlot: Waiting for plot...')
+        task.wait(1)
+
+        p = findMyPlot()
+    end
+
+    return p
+end
+local function findPriceAndPurchasePrompt(model)
+    local part = model:FindFirstChild('Part') or model:FindFirstChild('HumanoidRootPart')
+
+    if not isBasePart(part) then
+        return nil, nil, nil, '', 0
+    end
+
+    local name, price, generation = getOverheadInfo(part.Position)
+    local purchasePrompt = nil
+    local pa = part:FindFirstChild('PromptAttachment')
+
+    if pa then
+        for _, d in ipairs(pa:GetChildren())do
+            if d:IsA('ProximityPrompt') then
+                local a = tostring(d.ActionText or ''):lower()
+
+                if a:find('purchase') or a:find('buy') or a:find('kauf') then
+                    purchasePrompt = d
+
+                    break
+                end
+            end
+        end
+
+        if not purchasePrompt then
+            purchasePrompt = pa:FindFirstChildOfClass('ProximityPrompt')
+        end
+    end
+    if not purchasePrompt then
+        for _, d in ipairs(model:GetDescendants())do
+            if d:IsA('ProximityPrompt') then
+                local a = tostring(d.ActionText or ''):lower()
+
+                if a:find('purchase') or a:find('buy') or a:find('kauf') then
+                    purchasePrompt = d
+
+                    break
+                end
+            end
+        end
+    end
+
+    return part, purchasePrompt, price, name, generation
+end
+local function getMovingAnimals()
+    local list = {}
+
+    for _, m in ipairs(Workspace:GetChildren())do
+        if m:IsA('Model') then
+            local part, prompt, price, name, generation = findPriceAndPurchasePrompt(m)
+
+            if part and prompt and price and price < math.huge then
+                if not isPurchased(m) then
+                    table.insert(list, {
+                        model = m,
+                        part = part,
+                        prompt = prompt,
+                        price = price,
+                        name = name,
+                        generation = generation,
+                    })
+                end
+            end
+        end
+    end
+
+    print('[DEBUG] getMovingAnimals: Found', #list, 'available animals')
+
+    return list
+end
+local function getMinGenerationInBase(plot)
+    local pods = plot and plot:FindFirstChild('AnimalPodiums')
+
+    if not pods then
+        print('[DEBUG] getMinGenerationInBase: No podiums')
+
+        return 0
+    end
+
+    local debris = Workspace:FindFirstChild('Debris')
+
+    if not debris then
+        print('[DEBUG] getMinGenerationInBase: No Debris')
+
+        return 0
+    end
+
+    local min_gen = math.huge
+
+    for _, pod in ipairs(pods:GetChildren())do
+        local spawn = pod:FindFirstChild('Base') and pod.Base:FindFirstChild('Spawn')
+
+        if spawn then
+            local spawn_pos = spawn.Position
+
+            for _, obj in ipairs(debris:GetChildren())do
+                if obj.Name == 'FastOverheadTemplate' and isBasePart(obj) then
+                    local distance = (obj.Position - spawn_pos).Magnitude
+
+                    if distance < 15 then
+                        local gui = obj:FindFirstChild('AnimalOverhead')
+
+                        if gui then
+                            local generation_label = gui:FindFirstChild('Generation')
+
+                            if generation_label then
+                                local gen = parsePrice(generation_label.Text) or 0
+
+                                if gen < min_gen then
+                                    min_gen = gen
                                 end
                             end
                         end
-                        return {name = targetName, price = "Unknown"}
                     end
                 end
             end
+        end
+    end
+
+    if min_gen == math.huge then
+        print('[DEBUG] getMinGenerationInBase: No animals found in base, returning 0')
+
+        return 0
+    end
+
+    print('[DEBUG] getMinGenerationInBase: Min generation in base:', min_gen)
+
+    return min_gen
+end
+local function bestAffordable(plot)
+    local animals = getMovingAnimals()
+
+    if #animals == 0 then
+        print('[DEBUG] bestAffordable: No animals found')
+
+        return nil
+    end
+
+    local min_generation_in_base = getMinGenerationInBase(plot)
+
+    print('[DEBUG] bestAffordable: Min generation in BASE:', min_generation_in_base)
+
+    local best, best_price = nil, -1
+
+    for _, entry in ipairs(animals)do
+        local p = tonumber(entry.price) or 0
+        local g = entry.generation or 0
+
+        local cash = cashValue and parseCash(cashValue.Value)
+        if g > min_generation_in_base and cash and p > 0 and p <= cash and p > best_price then
+            best = entry
+            best_price = p
+        end
+    end
+
+    if best then
+        print('[DEBUG] bestAffordable: Found', best.name, 'for', best_price, 'gen', best.generation, '(base min:', min_generation_in_base, ')')
+    else
+        print('[DEBUG] bestAffordable: None affordable above base min generation')
+    end
+
+    return best
+end
+local function countOwned(plot)
+    local c = 0
+
+    for _, child in ipairs(plot:GetChildren())do
+        if child:GetAttribute('RadioactivePalette') or child:GetAttribute('YinYangPalette') then
+            c += 1
+        elseif child:FindFirstChild('AnimationController') then
+            c += 1
+        end
+    end
+
+    print('[DEBUG] countOwned:', c)
+
+    return c
+end
+local function collectCoins(plot)
+    print('[DEBUG] collectCoins: Starting')
+
+    totalCoinsCollected = totalCoinsCollected + 1
+
+    spamJump(10)
+    task.wait(0.4)
+
+    local pods = plot and plot:FindFirstChild('AnimalPodiums')
+
+    if not pods then
+        return
+    end
+
+    for _, pod in ipairs(pods:GetChildren())do
+        local hit = pod:FindFirstChild('Claim') and pod.Claim:FindFirstChild('Hitbox')
+
+        if isBasePart(hit) then
+            walkToDynamic(hit, 3, 30)
+            task.wait(0.08)
+        end
+    end
+end
+local function podiumPrompt(pod)
+    local spawn = pod:FindFirstChild('Base') and pod.Base:FindFirstChild('Spawn')
+    local pa = spawn and spawn:FindFirstChild('PromptAttachment')
+
+    if pa then
+        for _, p in ipairs(pa:GetChildren())do
+            if p:IsA('ProximityPrompt') then
+                local a = tostring(p.ActionText or ''):lower()
+
+                if a:find('sell') then
+                    return p
+                end
+            end
+        end
+
+        return pa:FindFirstChildOfClass('ProximityPrompt')
+    end
+
+    return nil
+end
+local function podiumPrice(pod)
+    for _, d in ipairs(pod:GetDescendants())do
+        if d.Name == 'AnimalOverhead' then
+            local p = d:FindFirstChild('Price')
+
+            if p and p:IsA('TextLabel') then
+                return parsePrice(p.Text)
+            end
+        end
+    end
+
+    return math.huge
+end
+local function sellCheapest(plot)
+    print('[SELL DEBUG] sellCheapest: Starting')
+
+    local pods = plot and plot:FindFirstChild('AnimalPodiums')
+
+    if not pods then
+        print('[SELL DEBUG] sellCheapest: No AnimalPodiums folder')
+
+        return
+    end
+
+    local pod_count = #pods:GetChildren()
+
+    print('[SELL DEBUG] Found', pod_count, 'podiums')
+
+    local debris = Workspace:FindFirstChild('Debris')
+
+    if not debris then
+        print('[SELL DEBUG] sellCheapest: No Debris folder')
+
+        return
+    end
+
+    local overhead_count = 0
+
+    for _, obj in ipairs(debris:GetChildren())do
+        if obj.Name == 'FastOverheadTemplate' then
+            overhead_count = overhead_count + 1
+        end
+    end
+
+    print('[SELL DEBUG] Found', overhead_count, 'FastOverheadTemplate objects in Debris')
+
+    local entries = {}
+
+    for pod_index, pod in ipairs(pods:GetChildren())do
+        local base = pod:FindFirstChild('Base')
+
+        if not base then
+            continue
+        end
+
+        local spawn = base:FindFirstChild('Spawn')
+
+        if not spawn then
+            continue
+        end
+
+        local spawn_pos = spawn.Position
+        local closest_overhead = nil
+        local closest_distance = math.huge
+
+        for _, obj in ipairs(debris:GetChildren())do
+            if obj.Name == 'FastOverheadTemplate' and isBasePart(obj) and not obj:FindFirstChild('CashPad') then
+                local distance = (obj.Position - spawn_pos).Magnitude
+
+                if distance < closest_distance and distance < 15 then
+                    closest_distance = distance
+                    closest_overhead = obj
+                end
+            end
+        end
+
+        if not closest_overhead then
+            continue
+        end
+
+        local gui = nil
+
+        for _, child in ipairs(closest_overhead:GetChildren())do
+            if child.Name == 'AnimalOverhead' or child:IsA('BillboardGui') or child:IsA('SurfaceGui') then
+                gui = child
+
+                break
+            end
+        end
+
+        if not gui then
+            continue
+        end
+
+        local price_label = gui:FindFirstChild('Price')
+        local display_name = gui:FindFirstChild('DisplayName')
+        local generation_label = gui:FindFirstChild('Generation')
+
+        if price_label then
+            local price = parsePrice(price_label.Text)
+            local generation = generation_label and parsePrice(generation_label.Text) or 0
+            local name = display_name and display_name.Text or 'Unknown'
+            local prompt = podiumPrompt(pod)
+
+            if not prompt then
+                continue
+            end
+
+            print('[SELL DEBUG] \u{2713} Adding podium', pod.Name, ':', name, 'Price:', price, 'Gen:', generation)
+            table.insert(entries, {
+                pod = pod,
+                price = price,
+                generation = generation,
+                prompt = prompt,
+                name = name,
+            })
+        end
+    end
+
+    print('[SELL DEBUG] Total entries collected:', #entries)
+
+    if #entries == 0 then
+        print('[SELL DEBUG] sellCheapest: No animals found in podiums')
+
+        return
+    end
+
+    table.sort(entries, function(a, b)
+        if a.generation == b.generation then
+            return a.price < b.price
+        end
+
+        return a.generation < b.generation
+    end)
+
+    local lowest_generation = entries[1].generation
+    local lowest_price = math.huge
+
+    for _, e in ipairs(entries)do
+        if e.generation == lowest_generation and e.price < lowest_price then
+            lowest_price = e.price
+        end
+    end
+
+    print('[SELL DEBUG] sellCheapest: Lowest generation:', lowest_generation, 'Lowest price in that gen:', lowest_price)
+
+    local sold_count = 0
+
+    for _, e in ipairs(entries)do
+        if e.generation == lowest_generation and e.price == lowest_price then
+            local pod_name = e.pod.Name
+
+            if pod_name then
+                print('[SELL DEBUG] Selling podium', pod_name, '-', e.name, 'Price:', e.price, 'Gen:', e.generation)
+                sellBrainrot(tonumber(pod_name))
+
+                sold_count = sold_count + 1
+                totalAnimalsSold = totalAnimalsSold + 1
+
+                task.wait(0.2)
+            end
+        end
+    end
+
+    print('[SELL DEBUG] sellCheapest: Sold', sold_count, 'animals')
+end
+local function hasRequired(plot)
+    local pods = plot and plot:FindFirstChild('AnimalPodiums')
+
+    if not pods then
+        return false
+    end
+
+    local debris = Workspace:FindFirstChild('Debris')
+
+    if not debris then
+        print('[DEBUG] hasRequired: No Debris folder')
+
+        return false
+    end
+
+    local f1, f2 = false, false
+
+    for _, pod in ipairs(pods:GetChildren())do
+        local spawn = pod:FindFirstChild('Base') and pod.Base:FindFirstChild('Spawn')
+
+        if spawn then
+            local spawn_pos = spawn.Position
+
+            for _, obj in ipairs(debris:GetChildren())do
+                if obj.Name == 'FastOverheadTemplate' and isBasePart(obj) then
+                    local distance = (obj.Position - spawn_pos).Magnitude
+
+                    if distance < 15 then
+                        local gui = obj:FindFirstChild('AnimalOverhead')
+
+                        if gui then
+                            local display_name = gui:FindFirstChild('DisplayName')
+
+                            if display_name then
+                                local name = display_name.Text
+
+                                if name == 'Trippi Troppi' then
+                                    f1 = true
+
+                                    print('[DEBUG] hasRequired: Found Trippi Troppi at podium', pod.Name)
+                                end
+                                if name == 'Gangster Footera' then
+                                    f2 = true
+
+                                    print('[DEBUG] hasRequired: Found Gangster Footera at podium', pod.Name)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    print('[DEBUG] hasRequired: Trippi=', f1, 'Gangster=', f2)
+
+    return f1 and f2
+end
+local function rebirth()
+    print('[DEBUG] rebirth: Attempting rebirth via GUI')
+
+    local gui = player.PlayerGui
+
+    -- Ouvrir le menu rebirth
+    local openBtn = gui:FindFirstChild('LeftCenter') and gui.LeftCenter:FindFirstChild('LeftCenter')
+    openBtn = openBtn and openBtn:FindFirstChild('Buttons') and openBtn.Buttons:FindFirstChild('Rebirth')
+
+    if openBtn then
+        firesignal(openBtn.Activated)
+        print('[DEBUG] rebirth: Opened rebirth menu')
+    else
+        warn('[DEBUG] rebirth: Open button not found')
+        return
+    end
+
+    task.wait(1)
+
+    -- Confirmer le rebirth
+    local confirmBtn = gui:FindFirstChild('Rebirth') and gui.Rebirth:FindFirstChild('Rebirth')
+    confirmBtn = confirmBtn and confirmBtn:FindFirstChild('Content') and confirmBtn.Content:FindFirstChild('Rebirth')
+
+    if confirmBtn then
+        firesignal(confirmBtn.Activated)
+        print('[DEBUG] rebirth: Confirmed rebirth!')
+    else
+        warn('[DEBUG] rebirth: Confirm button not found')
+    end
+end
+
+-- ============================================================
+-- SPIN WHEEL
+-- ============================================================
+local wheelGuiName = nil
+
+local function findWheelGui()
+    for _, g in ipairs(player.PlayerGui:GetChildren()) do
+        local name = g.Name:lower()
+        if name:find('wheel') and not name:find('loading') and not name:find('radioactive') then
+            return g
         end
     end
     return nil
 end
 
-local function getAllAnimals()
-    local animals = {}
-    local debris = workspace:FindFirstChild('Debris')
-    if not debris then return animals end
-    
-    for _, template in pairs(debris:GetChildren()) do
-        local animalOverhead = template:FindFirstChild('AnimalOverhead')
-        
-        if animalOverhead and (animalOverhead:IsA('SurfaceGui') or animalOverhead:IsA('BillboardGui')) then
-            local displayName = nil
-            local isFusing = false
-            
-            for _, desc in pairs(animalOverhead:GetDescendants()) do
-                if desc:IsA('TextLabel') then
-                    if desc.Name == "DisplayName" then
-                        displayName = desc.Text
-                    elseif desc.Name == "Stolen" and string.upper(desc.Text or "") == "FUSING" then
-                        isFusing = true
-                    end
-                end
-            end
-            
-            if displayName and displayName ~= "" and not isFusing then
-                table.insert(animals, {name = displayName})
-            end
+local function toggleWheelGui()
+    local gui = nil
+    local guiName = nil
+
+    for _, g in ipairs(player.PlayerGui:GetChildren()) do
+        local name = g.Name:lower()
+        if name:find('wheel') and not name:find('loading') and not name:find('radioactive') then
+            gui = g
+            guiName = g.Name
+            break
         end
     end
-    
-    return animals
-end
 
-local function checkTargets()
-    local t1, t2 = {}, {}
-    local processed = {}
-    
-    for _, a in ipairs(getAllAnimals()) do
-        local lower = string.lower(a.name or "")
-        if targetDict1[lower] and not processed[lower] then
-            processed[lower] = true
-            local info = getValidTargetInfo(a.name)
-            if info then table.insert(t1, info) end
-        elseif targetDict2[lower] and not processed[lower] then
-            processed[lower] = true
-            local info = getValidTargetInfo(a.name)
-            if info then table.insert(t2, info) end
+    if not gui then
+        warn('[WHEEL] Không tìm thấy wheel GUI nào!')
+        return
+    end
+
+    print('[WHEEL] Found GUI:', guiName)
+
+    local inner = gui:FindFirstChild(guiName)
+    if inner then
+        local closeBtn = inner:FindFirstChild('Close')
+        if closeBtn then
+            firesignal(closeBtn.Activated)
+            print('[WHEEL] Đã close!')
+            return
         end
     end
-    return t1, t2
+
+    for _, v in ipairs(gui:GetDescendants()) do
+        if v.Name == 'Close' and v:IsA('GuiButton') then
+            firesignal(v.Activated)
+            return
+        end
+    end
 end
 
-print('🎯 Scanner running...')
-print('📡 Server:', WS_URL)
-
-task.wait(1)
-local i1, i2 = checkTargets()
-
-if #i1 > 0 then
-    print('✅ Found', #i1, 'target(s) type 1!')
-    sendWebhook1(i1)
-elseif #i2 > 0 then
-    print('✅ Found', #i2, 'target(s) type 2!')
-    sendWebhook2(i2)
-else
-    print('⚠️ No target, hopping...')
-    task.spawn(_G.StartHopper)
+local function openWheelGui()
+    task.wait(5)
+    toggleWheelGui()
+    task.wait(1)
+    local gui = findWheelGui()
+    if gui then
+        wheelGuiOpen = true
+        wheelGuiName = gui.Name
+        print('[WHEEL] GUI opened:', wheelGuiName)
+    else
+        print('[WHEEL] GUI not found after open attempt')
+    end
 end
 
---==================================================
--- LOOP QUÉT 2S (ĐỘC LẬP)
---==================================================
+local function closeWheelGui()
+    toggleWheelGui()
+    wheelGuiOpen = false
+    wheelGuiName = nil
+    task.wait(0.3)
+end
+
+-- Background: check mỗi 10s nếu có spin thì bấm
 task.spawn(function()
     while true do
-        task.wait(2)
+        task.wait(10)
+        if not wheelGuiOpen or not wheelGuiName then continue end
         pcall(function()
-            local t1, t2 = checkTargets()
-            if #t1 > 0 then
-                print("🔁 Scan loop: found T1, sending webhook...")
-                sendWebhook1(t1)
-            elseif #t2 > 0 then
-                print("🔁 Scan loop: found T2, sending webhook...")
-                sendWebhook2(t2)
+            local wGui = lplr.PlayerGui:FindFirstChild(wheelGuiName)
+            if not wGui then return end
+            local inner = wGui:FindFirstChild(wheelGuiName)
+            if not inner then return end
+            local buttons = inner:FindFirstChild('Buttons')
+            if not buttons then return end
+            local spinBtn = buttons:FindFirstChild('Spin')
+            if not spinBtn then return end
+            for _, child in ipairs(spinBtn:GetDescendants()) do
+                local ok, text = pcall(function() return child.Text end)
+                if ok and text and type(text) == 'string' then
+                    local num = tonumber(text:match('%((%d+)%)'))
+                    if num and num > 0 then
+                        print('[WHEEL] ' .. num .. ' spin(s) dispo! SPINNING!')
+                        firesignal(spinBtn.Activated)
+                        task.wait(6)
+                        break
+                    end
+                end
             end
         end)
     end
 end)
 
-print("✅ Script loaded!")
+print('[DEBUG] ensureMyPlot: Starting')
+
+local myPlot = ensureMyPlot()
+
+task.wait(1)
+openWheelGui()
+print('[DEBUG] Main loop starting')
+print('[DEBUG] Cash value:', cashValue and cashValue.Value or 'nil')
+
+while true do
+    if not myPlot or not myPlot.Parent then
+        print('[DEBUG] Plot lost, finding again')
+
+        myPlot = ensureMyPlot()
+    end
+    if checkNeedMoreRoom() then
+        print('[DEBUG] Main: Need more room detected, selling cheapest')
+        sellCheapest(myPlot)
+        task.wait(0.5)
+    end
+    local cashNum = cashValue and parseCash(cashValue.Value)
+    if cashNum and cashNum >= 500000 then
+        print('[DEBUG] Main: Reached 500K, preparing for rebirth')
+        isRebirthingNow = true
+
+        -- Fermer le GUI de la roue avant rebirth
+        if wheelGuiOpen then
+            closeWheelGui()
+        end
+
+        if not rebirthStartTime then
+            rebirthStartTime = tick()
+        end
+
+        while countOwned(myPlot) > 0 do
+            sellCheapest(myPlot)
+            task.wait(0.5)
+        end
+        while not hasRequired(myPlot) do
+            print('[DEBUG] Main: Looking for required animals')
+
+            local animals = getMovingAnimals()
+
+            for _, entry in ipairs(animals)do
+                if entry.name == 'Trippi Troppi' or entry.name == 'Gangster Footera' then
+                    print('[DEBUG] Main: Found required animal:', entry.name)
+
+                    if parseCash(cashValue.Value) >= tonumber(entry.price) then
+                        if walkToDynamic(entry.prompt, 2.5, 35) then
+                            firePrompt(entry.prompt, 3)
+
+                            totalAnimalsPurchased = totalAnimalsPurchased + 1
+
+                            task.wait(0.5)
+                        end
+                    end
+                end
+            end
+
+            task.wait(1)
+        end
+
+        totalRebirths = totalRebirths + 1
+
+        local timeTaken = rebirthStartTime and (tick() - rebirthStartTime) or 0
+        local finalBalance = cashValue.Value
+
+        rebirth()
+        sendRebirthComplete(timeTaken, finalBalance, totalRebirths)
+        task.wait(1)
+        game:GetService('TeleportService'):Teleport(109983668079237, player)
+
+        break
+    end
+
+    local owned = countOwned(myPlot)
+
+    print('[DEBUG] Main: Owned animals:', owned, 'Cash:', cashValue and cashValue.Value or 'nil')
+
+    local timeSinceLastPurchase = tick() - lastPurchaseTime
+
+    if timeSinceLastPurchase > PURCHASE_TIMEOUT and owned < 10 then
+        print('[DEBUG] Main: No purchase for', math.floor(timeSinceLastPurchase), 'seconds, collecting coins')
+        collectCoins(myPlot)
+
+        lastPurchaseTime = tick()
+
+        task.wait(1)
+    end
+    if owned >= 10 then
+        print('[DEBUG] Main: 10 animals, collecting and selling')
+        collectCoins(myPlot)
+        sellCheapest(myPlot)
+        task.wait(1.2)
+    else
+        local best = bestAffordable(myPlot)
+
+        if best and isBasePart(best.part) and best.prompt then
+            print('[DEBUG] Main: Buying', best.name, 'for', best.price)
+
+            if walkToDynamic(best.prompt, 2.5, 35) then
+                firePrompt(best.prompt, 3)
+
+                lastPurchaseTime = tick()
+
+                task.wait(0.3)
+            else
+                if cashValue and cashValue.Value and parseCash(cashValue.Value) <= 25 then
+                    spamJump(10)
+                    task.wait(2.5)
+                    collectCoins(myPlot)
+
+                    lastPurchaseTime = tick()
+                else
+                    task.wait(0.5)
+                end
+            end
+        else
+            if cashValue and cashValue.Value and parseCash(cashValue.Value) <= 25 then
+                print('[DEBUG] Main: No animals, low cash, collecting')
+                spamJump(10)
+                task.wait(2.5)
+                collectCoins(myPlot)
+
+                lastPurchaseTime = tick()
+            else
+                print('[DEBUG] Main: Waiting...')
+                task.wait(0.5)
+            end
+        end
+    end
+
+    task.wait(0.4 + math.random() * 0.3)
+end
