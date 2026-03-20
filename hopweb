@@ -164,7 +164,7 @@ local function cleanWorkspace()
     print('✅ Dọn Workspace - Deleted:', deleted)
 end
 task.spawn(function()
-    task.wait(4)
+    task.wait(1)
     cleanWorkspace()
 end)
 task.wait(0.5)
