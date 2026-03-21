@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://shark-theory-obviously-sunset.trycloudflare.com"
+local WS_URL = "wss://auctions-engineering-dame-obviously.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
@@ -164,7 +164,7 @@ local function cleanWorkspace()
     print('✅ Dọn Workspace - Deleted:', deleted)
 end
 task.spawn(function()
-    task.wait(1)
+    task.wait(4)
     cleanWorkspace()
 end)
 task.wait(0.5)
@@ -379,7 +379,7 @@ local targets1 = {
     'Popcuru and Fizzuru','La Grande Combinasion','Chicleteira Cupideira','Rosetti Tualetti','Rosey and Teddy','Lovin Rose',
     'Love Love Bear','La Romantic Grande','Fishino Clownino','Los Sweethearts',
     'Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
-    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Los Cupids','Cloverat Clapat','Fortunu and Coinuru',
+    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Los Cupids','Cloverat Clapat','Fortunu and Coinuru','Gold Gold Gold',
 }
 local targetsVIP = {
     'Chipso and Queso','La Casa Boo','Headless Horseman',
@@ -397,7 +397,7 @@ local targetsVIP = {
     'Ginger Gerat','Cerberus',
     'Ketupat Bros','Hydra Dragon Cannelloni','Popcuru and Fizzuru','Rosetti Tualetti','Rosey and Teddy','Love Love Bear',
     'La Romantic Grande','Fishino Clownino','Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
-    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Cloverat Clapat','Fortunu and Coinuru',
+    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Cloverat Clapat','Fortunu and Coinuru','Gold Gold Gold',
 }
 
 local targets2 = {
@@ -444,7 +444,7 @@ _G.StartHopper = function()
     _G.hopperRunning = true
 
     -- DELAY RANDOM 4-20s TRƯỚC KHI KẾT NỐI
-    local delayTime = 2
+    local delayTime = 10 + math.random() * 13
     print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
     task.wait(delayTime)
     
