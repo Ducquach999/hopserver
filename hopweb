@@ -380,6 +380,7 @@ local targets1 = {
     'Love Love Bear','La Romantic Grande','Fishino Clownino','Los Sweethearts',
     'Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
     'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Los Cupids','Cloverat Clapat','Fortunu and Cashuru','Gold Gold Gold','Snailo Clovero',
+    'Foxini Lanternini',
 }
 local targetsVIP = {
     'Chipso and Queso','La Casa Boo','Headless Horseman',
@@ -397,7 +398,8 @@ local targetsVIP = {
     'Ginger Gerat','Cerberus',
     'Ketupat Bros','Hydra Dragon Cannelloni','Popcuru and Fizzuru','Rosetti Tualetti','Rosey and Teddy','Love Love Bear',
     'La Romantic Grande','Fishino Clownino','Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
-    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Cloverat Clapat','Fortunu and Cashuru','Gold Gold Gold','Snailo Clovero',
+    'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Cloverat Clapat','Fortunu and Cashuru',
+    'Foxini Lanternini',
 }
 
 local targets2 = {
