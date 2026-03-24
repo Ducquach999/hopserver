@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://replied-thursday-could-disciplinary.trycloudflare.com"
+local WS_URL = "wss://supports-celebrities-represented-font.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
@@ -380,14 +380,13 @@ local targets1 = {
     'Love Love Bear','La Romantic Grande','Fishino Clownino','Los Sweethearts',
     'Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
     'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Los Cupids','Cloverat Clapat','Fortunu and Cashuru','Gold Gold Gold','Snailo Clovero',
-    'Foxini Lanternini',
+    'Foxini Lanternini','Dug dug dug',
 }
 local targetsVIP = {
     'Chipso and Queso','La Casa Boo','Headless Horseman',
     'Strawberry Elephant','Ketupat Kepat',
     'Tictac Sahur','Ketchuru and Musturu','Garama and Madundung',
-    'Dragon Cannelloni',
-
+    'Dragon Cannelloni','Dug dug dug',
     'Celularcini Viciosini','Los Bros','Tralaledon','Los Tacoritas','Los Primos',
     'Chillin Chili','Los Hotspotsitos','La Supreme Combinasion','La Secret Combinasion',
     'Burguro And Fryuro','Eviledon','Spooky and Pumpky','Meowl',
