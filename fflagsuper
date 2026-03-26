@@ -13,18 +13,18 @@ local FFLAGS = {
 
     ["DFIntTaskSchedulerTargetFps"] = 9999999,
     -- RAKNET FLAGS
-    ["DFIntRakNetLoopMs"] = 1,
-    ["DFIntRakNetNakResendDelayMs"] = 10,
+
+
     ["DFIntRakNetNakResendDelayRttPercent"] = 50,
     ["DFIntRaknetBandwidthInfluxHundredthsPercentageV2"] = 10000,
-    ["FIntRakNetResendBufferArrayLength"] = 1024,
+
     ["DFIntRakNetResendRttMultiple"] = 1,
     ["DFIntRaknetBandwidthPingSendEveryXSeconds"] = 1,
-    ["DFFlagRakNetUseSlidingWindow4"] = true,
+
     ["DFIntRakNetMtuValue1InBytes"] = 1280,
     ["DFIntRakNetMtuValue2InBytes"] = 1240,
     ["DFIntRakNetMtuValue3InBytes"] = 1200,
-    ["FIntRakNetDatagramMessageIdArrayLength"] = 1024,
+
     ["DFIntRakNetNakResendDelayMsMax"] = 100,
     ["DFIntRakNetClockDriftAdjustmentPerPingMillisecond"] = 100,
     -- NETWORK FLAGS
@@ -326,9 +326,15 @@ black.BackgroundColor3  = Color3.fromRGB(0,0,0)
 black.ZIndex            = 999
 
 -- ========================
--- APPLY FFLAGS NGAY LẬP TỨC
+-- APPLY FFLAGS NGAY LẬP TỨC (CHỈ 1 LẦN MỖI SESSION ROBLOX)
 -- ========================
 task.spawn(function()
+    -- Check nếu đã apply FFlags trong session này
+    if _G.MERGED_FFLAGS_APPLIED then
+        log("FFlags already applied this session - skipping", "INFO")
+        return
+    end
+    
     if setfflag then
         local ok, fail = 0, 0
         for flag, value in pairs(FFLAGS) do
@@ -344,6 +350,9 @@ task.spawn(function()
             if success then ok = ok + 1 else fail = fail + 1 end
         end
         log(string.format("FFlags applied: %d ok / %d failed", ok, fail), "INFO")
+        
+        -- Đánh dấu đã apply trong session này
+        _G.MERGED_FFLAGS_APPLIED = true
     else
         log("setfflag not available - FFlags skipped", "WARN")
     end
