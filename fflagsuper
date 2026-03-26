@@ -143,7 +143,7 @@ local FFLAGS = {
     ["DFStringAltTelegrafHTTPTransportUrl"] = "http://opt-out.roblox.com",
     ["FStringPerformanceSendMeasurementAPISubdomain"] = "opt-out",
     ["FIntRenderGrassDetailStrands"] = 0,
-    ["FFlagDebugDisplayFPS"] = true,
+
     ["FFlagEnableMenuModernizationABTest2"] = false,
     ["FFlagTopBarUseNewBadge"] = true,
 
@@ -286,31 +286,6 @@ local player          = Players.LocalPlayer
 pcall(function() ReplicatedFirst:RemoveDefaultLoadingScreen() end)
 
 -- ========================
--- LOG SYSTEM
--- ========================
-local logBuffer    = {}
-local MAX_BUF      = 100
-local _print       = print
-local _warn        = warn
-
-local function log(msg, t)
-    t = t or "INFO"
-    if rconsoleprint then
-        local pre = t=="WARN" and "⚠ " or t=="ERROR" and "✖ " or "✓ "
-        rconsoleprint(string.format("[%s] %s%s\n", os.date("%H:%M:%S"), pre, tostring(msg)))
-    end
-    table.insert(logBuffer, {time=tick(), msg=msg, type=t})
-    if #logBuffer > MAX_BUF then table.remove(logBuffer, 1) end
-end
-
-print = function(...) _print(...); log(table.concat({...}," "), "INFO") end
-warn  = function(...) _warn(...);  log(table.concat({...}," "), "WARN") end
-
-if rconsoleclear   then rconsoleclear() end
-if setconsoletitle then setconsoletitle("MERGED SPEED v2.2 + 219 FFLAGS") end
-if rconsoleinfo    then rconsoleinfo("⚡ MERGED SPEED v2.2 + 219 FFLAGS — Starting...\n") end
-
--- ========================
 -- BLACKSCREEN (CoreGui ngay lập tức)
 -- ========================
 local loadingGui = Instance.new("ScreenGui")
@@ -331,7 +306,7 @@ black.ZIndex            = 999
 task.spawn(function()
     -- Check nếu đã apply FFlags trong session này
     if _G.MERGED_FFLAGS_APPLIED then
-        log("FFlags already applied this session - skipping", "INFO")
+        --removed
         return
     end
     
@@ -349,12 +324,12 @@ task.spawn(function()
             end)
             if success then ok = ok + 1 else fail = fail + 1 end
         end
-        log(string.format("FFlags applied: %d ok / %d failed", ok, fail), "INFO")
+
         
         -- Đánh dấu đã apply trong session này
         _G.MERGED_FFLAGS_APPLIED = true
     else
-        log("setfflag not available - FFlags skipped", "WARN")
+        --removed
     end
 end)
 
@@ -412,7 +387,7 @@ task.spawn(function()
         if #essentials > 0 then
             pcall(function() ContentProvider:PreloadAsync(essentials) end)
         end
-        log("Asset preload done ("..#essentials.." items)", "INFO")
+        --removed", "INFO")
     end)
 
     -- [4] TERRAIN
@@ -426,7 +401,7 @@ task.spawn(function()
     pcall(function() collectgarbage("collect") end)
     pcall(function() gcinfo() end)
 
-    log("All optimizations applied ✓", "INFO")
+    --removed
 end)
 
 -- ========================
@@ -679,7 +654,7 @@ end
 
 function OPTIMIZER.Enable()
     if getgenv and getgenv().OPTIMIZER_ACTIVE then
-        log("Optimizer already running", "WARN"); return
+        --removed; return
     end
     if getgenv then getgenv().OPTIMIZER_ACTIVE = true end
 
@@ -708,7 +683,7 @@ function OPTIMIZER.Enable()
     _addThread(function()
         task.wait(1)
         _nukeVisualEffects()
-        log("Visual effects nuked ✓", "INFO")
+        --removed
     end)
 
     _addConn(workspace.DescendantAdded:Connect(function(obj)
@@ -750,7 +725,7 @@ function OPTIMIZER.Enable()
 
     if setfpscap then pcall(function() setfpscap(9999) end) end
 
-    log("OPTIMIZER enabled ✓", "INFO")
+    --removed
 end
 
 function OPTIMIZER.Disable()
@@ -779,7 +754,7 @@ function OPTIMIZER.Disable()
         workspace.Terrain.Decoration              = _originalSettings.decoration          ~= false
     end)
 
-    log("OPTIMIZER disabled", "INFO")
+    --removed
 end
 
 task.spawn(function()
@@ -800,7 +775,7 @@ task.spawn(function()
     subLabel.Text = "ready!"
     task.wait(0.3)
     black:Destroy()
-    log("Blackscreen removed ✓", "INFO")
+    --removed
 end)
 
 -- ========================
@@ -881,5 +856,4 @@ task.spawn(function()
     end)
 end)
 
-log("MERGED SPEED v2.2 + 219 FFLAGS — Ready ⚡", "INFO")
-print("⚡ MERGED SPEED v2.2 + 219 FFlags (UNLOCKED FPS) loaded")
+--removed
