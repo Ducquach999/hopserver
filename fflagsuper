@@ -1,0 +1,876 @@
+--[[
+    MERGED SPEED v2.2 + 219 FFLAGS
+    - Loading UI: n1gloader style (pill bar + dots + slide text)
+    - Network / FPS / Map optimization từ Roblox DevForum + GitHub research
+    - 219 FFlags (unlocked FPS, tối ưu network, tắt telemetry)
+    - Auto-run khi execute, không cần toggle
+]]
+
+-- ========================
+-- 219 FFLAGS (UNLOCKED FPS + OPTIMIZED)
+-- ========================
+local FFLAGS = {
+
+    ["DFIntTaskSchedulerTargetFps"] = 9999999,
+    -- RAKNET FLAGS
+    ["DFIntRakNetLoopMs"] = 1,
+    ["DFIntRakNetNakResendDelayMs"] = 10,
+    ["DFIntRakNetNakResendDelayRttPercent"] = 50,
+    ["DFIntRaknetBandwidthInfluxHundredthsPercentageV2"] = 10000,
+    ["FIntRakNetResendBufferArrayLength"] = 1024,
+    ["DFIntRakNetResendRttMultiple"] = 1,
+    ["DFIntRaknetBandwidthPingSendEveryXSeconds"] = 1,
+    ["DFFlagRakNetUseSlidingWindow4"] = true,
+    ["DFIntRakNetMtuValue1InBytes"] = 1280,
+    ["DFIntRakNetMtuValue2InBytes"] = 1240,
+    ["DFIntRakNetMtuValue3InBytes"] = 1200,
+    ["FIntRakNetDatagramMessageIdArrayLength"] = 1024,
+    ["DFIntRakNetNakResendDelayMsMax"] = 100,
+    ["DFIntRakNetClockDriftAdjustmentPerPingMillisecond"] = 100,
+    -- NETWORK FLAGS
+    ["FLogNetwork"] = 7,
+    ["DFIntNetworkPrediction"] = 120,
+    ["DFIntCodecMaxOutgoingFrames"] = 10000,
+    ["DFIntCodecMaxIncomingPackets"] = 100,
+    ["DFIntNetworkLatencyTolerance"] = 1,
+    ["DFFlagQueueDataPingFromSendData"] = true,
+    ["FFlagOptimizeNetwork"] = true,
+    ["FFlagOptimizeNetworkRouting"] = true,
+    ["FFlagOptimizeNetworkTransport"] = true,
+    ["DFFlagDisableDPIScale"] = true,
+    ["DFFlagDebugRenderForceTechnologyVoxel"] = true,
+    ["FIntDebugForceMSAASamples"] = 1,
+    ["DFIntTextureQualityOverride"] = 0,
+    -- TERRAIN (safe values)
+
+
+    -- TEXTURE REDUCTION (giảm chất lượng texture)
+    ["DFIntTextureCompositorActiveJobs"] = 2,
+    ["FIntTextureCompositorLowResFactor"] = 8,
+    ["DFIntTextureCompositorJobPoolSize"] = 2,
+    ["FIntMeshContentProviderForceCacheSize"] = 33554432,
+    -- RESOLUTION 480p (854x480)
+    ["DFIntWindowSizeX"] = 854,
+    ["DFIntWindowSizeY"] = 480,
+    ["FFlagRenderFixEnableOverrideWindowSize"] = true,
+    ["FIntRenderFixOverrideWindowSizeX"] = 854,
+    ["FIntRenderFixOverrideWindowSizeY"] = 480,
+    ["FFlagDebugGraphicsPreferD3D11FL10"] = false,
+    ["DFFlagTextureQualityOverrideEnabled"] = true,
+    ["FFlagDisablePostFx"] = true,
+    ["FIntRenderShadowIntensity"] = 0,
+    ["FIntFullscreenTitleBarTriggerDelayMillis"] = 18000000,
+
+    ["DFIntCanHideGuiGroupId"] = 32380007,
+    ["FFlagDebugForceFutureIsBrightPhase3"] = true,
+    ["FFlagDebugForceFutureIsBrightPhase2"] = true,
+    ["FFlagHandleAltEnterFullscreenManually"] = false,
+    ["FFlagDebugGraphicsPreferD3D11"] = true,
+    ["FIntFontSizePadding"] = 3,
+    ["FFlagTaskSchedulerLimitTargetFpsTo2402"] = false,
+    ["DFIntOptimizePingThreshold"] = 50,
+    ["DFFlagSimReportCPUInfo"] = false,
+    ["FFlagDebugGraphicsPreferOpenGL"] = true,
+    ["FFlagDebugDisableTelemetryEphemeralCounter"] = true,
+    ["DFIntUserIdPlayerNameLifetimeSeconds"] = 86400,
+    ["FFlagFastGPULightCulling3"] = true,
+    ["DFIntLightstepHTTPTransportHundredthsPercent2"] = 0,
+    ["FIntBootstrapperTelemetryReportingHundredthsPercentage"] = 0,
+
+    ["FFlagDebugSkyGray"] = true,
+    ["FFlagGraphicsGLEnableSuperHQShadersExclusion"] = false,
+    ["FIntRenderLocalLightUpdatesMin"] = 1,
+    ["FFlagOptimizeServerTickRate"] = true,
+    ["FIntFRMMaxGrassDistance"] = 0,
+    ["FStringInGameMenuChromeForcedUserIds"] = 1353919681,
+    ["DFIntServerPhysicsUpdateRate"] = 60,
+    ["DFIntWaitOnRecvFromLoopEndedMS"] = 100,
+
+    ["FFlagFixGraphicsQuality"] = true,
+
+    ["FFlagDebugDisableTelemetryEventIngest"] = true,
+
+
+
+
+    ["FFlagRenderGpuTextureCompressor"] = true,
+    ["FFlagDebugGraphicsDisableDirect3D11"] = false,
+    ["FFlagEnableV3MenuABTest3"] = false,
+
+    ["DFIntUserIdPlayerNameCacheSize"] = 33554432,
+    ["DFIntClientLightingTechnologyChangedTelemetryHundredthsPercent"] = 0,
+    ["FIntRenderGrassHeightScaler"] = 0,
+    ["FFlagEnableInGameMenuChromeABTest3"] = false,
+
+    ["FFlagRenderCheckThreading"] = true,
+    ["FIntCameraMaxZoomDistance"] = 99999,
+    ["FIntMockClientLightingTechnologyIxpExperimentMode"] = 0,
+    ["FFlagEnableMenuControlsABTest"] = false,
+    ["FFlagDebugDisableTelemetryPoint"] = true,
+    ["FFlagNewLightAttenuation"] = true,
+    ["FFlagGraphicsEnableD3D10Compute"] = true,
+    ["FFlagDebugGraphicsPreferVulkan"] = true,
+    ["FIntTerrainOTAMaxTextureSize"] = 256,
+
+    ["DFIntDebugFRMQualityLevelOverride"] = 3,
+    ["DFIntHardwareTelemetryHundredthsPercent"] = 0,
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL23"] = 1,
+    ["FFlagEnableInGameMenuModernization"] = true,
+    ["DFIntReportRecordingDeviceInfoRateHundredthsPercentage"] = 0,
+
+    ["FFlagEnableInGameMenuChrome"] = true,
+
+    ["FFlagDebugDisableTelemetryEphemeralStat"] = true,
+
+    ["FFlagGraphicsGLEnableHQShadersExclusion"] = false,
+    ["FFlagDisableNewIGMinDUA"] = true,
+    ["FIntFRMMinGrassDistance"] = 0,
+    ["FFlagEnableQuickGameLaunch"] = false,
+    ["FFlagPreloadAllFonts"] = true,
+    ["FStringErrorUploadToBacktraceBaseUrl"] = "http://opt-out.roblox.com",
+
+
+
+
+    ["DFIntHttpCurlConnectionCacheSize"] = 134217728,
+    ["FFlagDebugDisableTelemetryV2Event"] = true,
+    ["FFlagEnableMenuModernizationABTest"] = false,
+    ["FIntMockClientLightingTechnologyIxpExperimentQualityLevel"] = 7,
+    ["FIntEmotesAnimationsPerPlayerCacheSize"] = 16777216,
+    ["DFIntClientLightingEnvmapPlacementTelemetryHundredthsPercent"] = 100,
+
+    ["FFlagEnableInGameMenuControls"] = true,
+    ["DFStringAltTelegrafHTTPTransportUrl"] = "http://opt-out.roblox.com",
+    ["FStringPerformanceSendMeasurementAPISubdomain"] = "opt-out",
+    ["FIntRenderGrassDetailStrands"] = 0,
+    ["FFlagDebugDisplayFPS"] = true,
+    ["FFlagEnableMenuModernizationABTest2"] = false,
+    ["FFlagTopBarUseNewBadge"] = true,
+
+
+
+    ["DFIntMaxFrameBufferSize"] = 4,
+    ["DFIntGoogleAnalyticsLoadPlayerHundredth"] = 0,
+    ["FFlagSimIslandizerManager"] = false,
+    ["FFlagReconnectDisabled"] = true,
+
+
+
+
+    ["DFIntServerTickRate"] = 60,
+
+
+    ["FFlagGameBasicSettingsFramerateCap5"] = false,
+    ["FIntRobloxGuiBlurIntensity"] = 0,
+    ["DFLogHttpTraceLight"] = 0,
+    ["FFlagDebugDisableTelemetryV2Counter"] = true,
+    ["FFlagDontCreatePingJob"] = true,
+    ["DFFlagEnableFmodErrorsTelemetry"] = false,
+    ["FFlagDebugDisableTelemetryV2Stat"] = true,
+
+
+    ["FFlagDebugLightGridShowChunks"] = false,
+    ["FFlagCoreGuiTypeSelfViewPresent"] = false,
+
+    ["FIntLmsClientRollout2"] = 0,
+
+    ["FFlagLuaAppExitModalDoNotShow"] = true,
+    ["FIntDefaultMeshCacheSizeMB"] = 256,
+    ["DFStringRobloxAnalyticsSubDomain"] = "opt-out",
+    ["FFlagEnableInGameMenuV3"] = true,
+    ["DFFlagEnableGCapsHardwareTelemetry"] = false,
+    ["FFlagCommitToGraphicsQualityFix"] = true,
+    ["DFFlagDebugAnalyticsSendUserId"] = false,
+    ["DFFlagEnableHardwareTelemetry"] = false,
+
+    ["FIntRenderShadowmapBias"] = 0,
+    ["DFStringHttpPointsReporterUrl"] = "http://opt-out.roblox.com",
+    ["DFIntCSGLevelOfDetailSwitchingDistance"] = 1,
+    ["FIntUITextureMaxRenderTextureSize"] = 256,
+    ["FFlagLuaAppSystemBar"] = false,
+    ["DFIntPerformanceControlTextureQualityBestUtility"] = -1,
+    ["DFFlagEnableLightstepReporting2"] = false,
+    ["FFlagBatchAssetApi"] = true,
+
+    ["FFlagPreloadTextureItemsOption4"] = true,
+
+    ["FFlagEnableSoundTelemetry"] = false,
+
+    ["FIntRenderLocalLightUpdatesMax"] = 1,
+    ["DFFlagDebugPauseVoxelizer"] = true,
+    ["DFStringAltHttpPointsReporterUrl"] = "http://opt-out.roblox.com",
+    ["DFStringCrashUploadToBacktraceBaseUrl"] = "http://opt-out.roblox.com",
+    ["DFStringAnalyticsEventStreamUrlEndpoint"] = "opt-out",
+    ["FFlagLuaAppExitModal2"] = false,
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL12"] = 1,
+    ["DFFlagAudioDeviceTelemetry"] = false,
+    ["DFFlagGpuVsCpuBoundTelemetry"] = false,
+    ["DFFlagBatchAssetApiNoFallbackOnFail"] = false,
+
+    ["FFlagAnimationClipMemCacheEnabled"] = true,
+    ["DFStringTelegrafHTTPTransportUrl"] = "http://opt-out.roblox.com",
+    ["DFIntReportOutputDeviceInfoRateHundredthsPercentage"] = 0,
+    ["FFlagInGameMenuV1FullScreenTitleBar"] = false,
+    ["FFlagGpuGeometryManager7"] = true,
+    ["DFStringRobloxAnalyticsURL"] = "http://opt-out.roblox.com",
+    ["FFlagAdServiceEnabled"] = false,
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL34"] = 1,
+    ["FFlagDebugRenderingSetDeterministic"] = true,
+    ["FIntRomarkStartWithGraphicQualityLevel"] = 1,
+    ["FIntRuntimeMaxNumOfThreads"] = 2400,
+    ["FIntTaskSchedulerThreadMin"] = 3,
+
+
+
+    ["FFlagCloudsReflectOnWater"] = true,
+    ["FFlagEnableCommandAutocomplete"] = false,
+    ["FFlagEnableBetaFacialAnimation2"] = false,
+    ["DFFlagLoadCharacterLayeredClothingProperty2"] = false,
+    ["FIntHSRClusterSymmetryDistancePercent"] = 10000,
+    ["DFFlagEnableDynamicHeadByDefault"] = false,
+    ["DFIntVoiceChatVolumeThousandths"] = 6000,
+    ["DFFlagDebugPerfMode"] = true,
+    ["FFlagEnableAccessibilitySettingsAPIV2"] = true,
+    ["FFlagEnableAccessibilitySettingsEffectsInCoreScripts2"] = true,
+    ["FFlagEnableAccessibilitySettingsEffectsInExperienceChat"] = true,
+    ["FFlagEnableAccessibilitySettingsInExperienceMenu2"] = true,
+    ["FFlagInGameMenuV1ExitModal"] = true,
+    ["FFlagInGameMenuV1LeaveToHome"] = false,
+    ["FFlagVoiceBetaBadge"] = false,
+    ["DFFlagDebugSkipMeshVoxelizer"] = true,
+    ["FIntDebugTextureManagerSkipMips"] = 3,
+    ["FFlagEnableTerrainFoliageOptimizations"] = true,
+    ["FFlagEnableTerrainOptimizations"] = true,
+    ["FFlagAnimatePhysics"] = false,
+    ["FFlagUseParticlesV2"] = false,
+    ["FFlagUseDynamicSun"] = false,
+    ["FFlagUseUnifiedRenderStepped"] = false,
+    ["FFlagEnableLightAttachToPart"] = false,
+    ["FFlagUseNewAnimationSystem"] = false,
+    ["FFlagEnableHumanoidLuaSideCaching"] = false,
+    ["FFlagFixScalingModelRendering"] = false,
+    ["FFlagFixMeshPartScaling"] = false,
+    ["FFlagUseDeferredContext"] = false,
+    ["FFlagHighlightOutlinesOnMobile"] = false,
+    ["FFlagOptimizeEmotes"] = false,
+    ["FFlagEnableNewHeapSnapshots"] = false,
+    ["FFlagEnableNewInput"] = true,
+    ["DFIntRenderingThrottleDelayInMS"] = 1,
+
+
+
+
+
+
+
+
+
+
+}
+
+-- ========================
+-- SERVICES
+-- ========================
+local Players         = game:GetService("Players")
+local RunService      = game:GetService("RunService")
+local TweenService    = game:GetService("TweenService")
+local UserInputService= game:GetService("UserInputService")
+local Lighting        = game:GetService("Lighting")
+local ContentProvider = game:GetService("ContentProvider")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local player          = Players.LocalPlayer
+
+-- ========================
+-- REMOVE DEFAULT LOADING SCREEN
+-- ========================
+pcall(function() ReplicatedFirst:RemoveDefaultLoadingScreen() end)
+
+-- ========================
+-- LOG SYSTEM
+-- ========================
+local logBuffer    = {}
+local MAX_BUF      = 100
+local _print       = print
+local _warn        = warn
+
+local function log(msg, t)
+    t = t or "INFO"
+    if rconsoleprint then
+        local pre = t=="WARN" and "⚠ " or t=="ERROR" and "✖ " or "✓ "
+        rconsoleprint(string.format("[%s] %s%s\n", os.date("%H:%M:%S"), pre, tostring(msg)))
+    end
+    table.insert(logBuffer, {time=tick(), msg=msg, type=t})
+    if #logBuffer > MAX_BUF then table.remove(logBuffer, 1) end
+end
+
+print = function(...) _print(...); log(table.concat({...}," "), "INFO") end
+warn  = function(...) _warn(...);  log(table.concat({...}," "), "WARN") end
+
+if rconsoleclear   then rconsoleclear() end
+if setconsoletitle then setconsoletitle("MERGED SPEED v2.2 + 219 FFLAGS") end
+if rconsoleinfo    then rconsoleinfo("⚡ MERGED SPEED v2.2 + 219 FFLAGS — Starting...\n") end
+
+-- ========================
+-- BLACKSCREEN (CoreGui ngay lập tức)
+-- ========================
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name          = "MergedSpeedLoader"
+loadingGui.ResetOnSpawn  = false
+loadingGui.IgnoreGuiInset= true
+loadingGui.DisplayOrder  = 999999
+loadingGui.Parent        = game:GetService("CoreGui")
+
+local black = Instance.new("Frame", loadingGui)
+black.Size              = UDim2.fromScale(1,1)
+black.BackgroundColor3  = Color3.fromRGB(0,0,0)
+black.ZIndex            = 999
+
+-- ========================
+-- APPLY FFLAGS NGAY LẬP TỨC
+-- ========================
+task.spawn(function()
+    if setfflag then
+        local ok, fail = 0, 0
+        for flag, value in pairs(FFLAGS) do
+            local success = pcall(function()
+                if type(value) == "boolean" then
+                    setfflag(flag, value and "True" or "False")
+                elseif type(value) == "number" then
+                    setfflag(flag, tostring(value))
+                else
+                    setfflag(flag, tostring(value))
+                end
+            end)
+            if success then ok = ok + 1 else fail = fail + 1 end
+        end
+        log(string.format("FFlags applied: %d ok / %d failed", ok, fail), "INFO")
+    else
+        log("setfflag not available - FFlags skipped", "WARN")
+    end
+end)
+
+-- ========================
+-- OPTIMIZATION — chạy ngay, không block
+-- ========================
+task.spawn(function()
+
+    -- [1] NETWORK
+    pcall(function()
+        local n = settings().Network
+        n.IncomingReplicationLag        = 0
+        n.PhysicsSend                   = 255
+        n.DataSendRate                  = 255
+        n.ExperimentalPhysicsEnabled    = true
+        n.PhysicsReceive                = 255
+        if sethiddenproperty then
+            pcall(function()
+                sethiddenproperty(game:GetService("NetworkClient"), "OutgoingReplicationLag", 0)
+            end)
+        end
+    end)
+
+    -- [2] RENDERING
+    pcall(function()
+        local r = settings().Rendering
+        r.QualityLevel        = Enum.QualityLevel.Level01
+        r.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
+        r.EnableFRM           = false
+        r.EnableVRMode        = false
+        Lighting.FogEnd        = 9e9
+        for _, e in pairs(Lighting:GetChildren()) do
+            if e:IsA("PostEffect") then e.Enabled = false end
+        end
+        if setfpscap then setfpscap(9999) end
+    end)
+
+    -- [3] MAP OPTIMIZATION
+    task.spawn(function()
+        local essentials = {}
+        local pg = player:FindFirstChildOfClass("PlayerGui")
+        if pg then
+            for _, obj in ipairs(pg:GetChildren()) do
+                if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Sound") then
+                    table.insert(essentials, obj)
+                end
+            end
+        end
+        local rs = game:GetService("ReplicatedStorage")
+        for _, obj in ipairs(rs:GetChildren()) do
+            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+                table.insert(essentials, obj)
+            end
+        end
+        if #essentials > 0 then
+            pcall(function() ContentProvider:PreloadAsync(essentials) end)
+        end
+        log("Asset preload done ("..#essentials.." items)", "INFO")
+    end)
+
+    -- [4] TERRAIN
+    pcall(function()
+        local t = workspace.Terrain
+        t.WaterWaveSize      = 0
+        t.WaterWaveSpeed     = 0
+    end)
+
+    -- [5] GC cycle
+    pcall(function() collectgarbage("collect") end)
+    pcall(function() gcinfo() end)
+
+    log("All optimizations applied ✓", "INFO")
+end)
+
+-- ========================
+-- WAIT FOR PLAYERGUI
+-- ========================
+local PlayerGui
+repeat task.wait() until Players.LocalPlayer
+repeat task.wait() PlayerGui = player:FindFirstChildOfClass("PlayerGui") until PlayerGui
+loadingGui.Parent = PlayerGui
+
+-- ========================
+-- PILL BAR UI (n1gloader style)
+-- ========================
+local pillBar = Instance.new("Frame", loadingGui)
+pillBar.AnchorPoint         = Vector2.new(0.5, 0)
+pillBar.Position            = UDim2.fromScale(0.5, 0.01)
+pillBar.Size                = UDim2.fromScale(0.13, 0.06)
+pillBar.BackgroundColor3    = Color3.fromRGB(30, 30, 30)
+pillBar.BackgroundTransparency = 0.2
+pillBar.ZIndex              = 1000
+Instance.new("UICorner", pillBar).CornerRadius = UDim.new(1, 0)
+
+local titleLabel = Instance.new("TextLabel", pillBar)
+titleLabel.AnchorPoint      = Vector2.new(0.5, 0.5)
+titleLabel.Position         = UDim2.fromScale(0.5, 0.35)
+titleLabel.Size             = UDim2.fromScale(0.8, 0.4)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text             = "1"
+titleLabel.TextScaled       = true
+titleLabel.Font             = Enum.Font.GothamBold
+titleLabel.TextColor3       = Color3.fromRGB(128, 128, 128)
+titleLabel.ZIndex           = 1001
+
+local subLabel = Instance.new("TextLabel", pillBar)
+subLabel.AnchorPoint        = Vector2.new(0.5, 0.5)
+subLabel.Position           = UDim2.fromScale(0.5, 0.72)
+subLabel.Size               = UDim2.fromScale(0.8, 0.3)
+subLabel.BackgroundTransparency = 1
+subLabel.Text               = "optimizing..."
+subLabel.TextScaled         = true
+subLabel.Font               = Enum.Font.Gotham
+subLabel.TextColor3         = Color3.fromRGB(100, 100, 100)
+subLabel.ZIndex             = 1001
+
+-- Moving dots
+local dotsContainer = Instance.new("Frame", pillBar)
+dotsContainer.Size              = UDim2.fromScale(1, 1)
+dotsContainer.BackgroundTransparency = 1
+dotsContainer.ZIndex            = 1002
+
+local dots = {}
+for i = 1, 15 do
+    local dot = Instance.new("Frame", dotsContainer)
+    dot.Size             = UDim2.fromScale(0.02, 0.02)
+    dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    dot.BorderSizePixel  = 0
+    dot.ZIndex           = 1003
+    dot.Position         = UDim2.fromScale(math.random(0,100)/100, math.random(0,100)/100)
+    table.insert(dots, {
+        instance = dot,
+        xSpeed   = (math.random(50,150)/1000) * (math.random()>0.5 and 1 or -1),
+        ySpeed   = (math.random(50,150)/1000) * (math.random()>0.5 and 1 or -1),
+    })
+end
+
+task.spawn(function()
+    while pillBar.Parent do
+        for _, d in pairs(dots) do
+            local dot = d.instance
+            local nx  = dot.Position.X.Scale + d.xSpeed * 0.02
+            local ny  = dot.Position.Y.Scale + d.ySpeed * 0.02
+            if nx<=0 or nx>=1 then d.xSpeed=-d.xSpeed; nx=math.clamp(nx,0,1) end
+            if ny<=0 or ny>=1 then d.ySpeed=-d.ySpeed; ny=math.clamp(ny,0,1) end
+            dot.Position = UDim2.fromScale(nx, ny)
+        end
+        task.wait(0.01)
+    end
+end)
+
+-- Overlay + slide text
+local overlay = Instance.new("Frame", loadingGui)
+overlay.Size                    = UDim2.fromScale(1,1)
+overlay.BackgroundColor3        = Color3.fromRGB(0,0,0)
+overlay.BackgroundTransparency  = 1
+overlay.ZIndex                  = 998
+
+local madeBy = Instance.new("TextLabel", loadingGui)
+madeBy.AnchorPoint          = Vector2.new(0, 0.5)
+madeBy.Position             = UDim2.fromScale(-0.3, 0.5)
+madeBy.Size                 = UDim2.fromScale(0.2, 0.06)
+madeBy.BackgroundTransparency = 1
+madeBy.Text                 = "made by 1"
+madeBy.TextScaled           = true
+madeBy.Font                 = Enum.Font.GothamBold
+madeBy.TextColor3           = Color3.fromRGB(128, 128, 128)
+madeBy.ZIndex               = 1001
+
+-- Slide animation
+task.spawn(function()
+    local t0 = tick()
+    while tick()-t0 < 0.5 do
+        overlay.BackgroundTransparency = 1 - ((tick()-t0)/0.5 * 0.7)
+        task.wait(0.01)
+    end
+    overlay.BackgroundTransparency = 0.3
+
+    local startPos  = madeBy.Position
+    local targetPos = UDim2.fromScale(1.3, 0.5)
+    local t1 = tick()
+    while tick()-t1 < 6 and madeBy.Parent do
+        madeBy.Position = startPos:Lerp(targetPos, (tick()-t1)/6)
+        task.wait(0.01)
+    end
+
+    while not _G._mergedSpeedReady and madeBy.Parent do
+        local cx = madeBy.Position.X.Scale
+        if cx > 1.3 then madeBy.Position = UDim2.fromScale(-0.3, 0.5) end
+        madeBy.Position = UDim2.fromScale(cx + 0.015, 0.5)
+        task.wait(0.01)
+    end
+
+    local startT = overlay.BackgroundTransparency
+    local t2 = tick()
+    while tick()-t2 < 0.5 do
+        overlay.BackgroundTransparency = startT + ((tick()-t2)/0.5)*(1-startT)
+        task.wait(0.01)
+    end
+    overlay.BackgroundTransparency = 1
+end)
+
+-- Pulse title
+task.spawn(function()
+    while loadingGui.Parent and titleLabel.Parent do
+        local v = math.clamp(128*(0.3+0.7*(math.sin(tick()*1.5)*0.5+0.5)), 0, 128)
+        titleLabel.TextColor3 = Color3.fromRGB(v, v, v)
+        task.wait(0.03)
+    end
+end)
+
+-- ========================
+-- BACKGROUND TASKS
+-- ========================
+task.spawn(function()
+    Lighting.ChildAdded:Connect(function(child)
+        if child:IsA("PostEffect") then
+            task.wait()
+            pcall(function() child.Enabled = false end)
+        end
+    end)
+end)
+
+task.spawn(function()
+    workspace.DescendantAdded:Connect(function(obj)
+        pcall(function()
+            if obj:IsA("ParticleEmitter") or obj:IsA("Beam") or obj:IsA("Trail")
+                or obj:IsA("Smoke") or obj:IsA("Fire") then
+                obj.Enabled = false
+            end
+        end)
+    end)
+end)
+
+-- ========================
+-- OPTIMIZER MODULE
+-- ========================
+local OPTIMIZER = {}
+local _optimizerThreads     = {}
+local _optimizerConnections = {}
+local _originalSettings     = {}
+
+local function _addThread(fn)
+    local t = task.spawn(fn)
+    table.insert(_optimizerThreads, t)
+    return t
+end
+
+local function _addConn(conn)
+    table.insert(_optimizerConnections, conn)
+    return conn
+end
+
+local function _storeOriginal()
+    pcall(function()
+        _originalSettings = {
+            qualityLevel        = settings().Rendering.QualityLevel,
+            meshPartDetailLevel = settings().Rendering.MeshPartDetailLevel,
+            globalShadows       = Lighting.GlobalShadows,
+            brightness          = Lighting.Brightness,
+            fogEnd              = Lighting.FogEnd,
+            technology          = Lighting.Technology,
+            envDiffuse          = Lighting.EnvironmentDiffuseScale,
+            envSpecular         = Lighting.EnvironmentSpecularScale,
+            decoration          = workspace.Terrain.Decoration,
+            waterWaveSize       = workspace.Terrain.WaterWaveSize,
+            waterWaveSpeed      = workspace.Terrain.WaterWaveSpeed,
+            waterReflectance    = workspace.Terrain.WaterReflectance,
+            waterTransparency   = workspace.Terrain.WaterTransparency,
+        }
+    end)
+end
+
+local function _nukeVisualEffects()
+    pcall(function()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            pcall(function()
+                if obj:IsA("ParticleEmitter") then
+                    obj.Enabled = false; obj.Rate = 0; obj:Destroy()
+                elseif obj:IsA("Trail") or obj:IsA("Beam") then
+                    obj.Enabled = false; obj:Destroy()
+                elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                    obj.Enabled = false; obj.Brightness = 0; obj:Destroy()
+                elseif obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Explosion") then
+                    obj.Enabled = false; obj:Destroy()
+                elseif obj:IsA("SpecialMesh") then
+                    obj.TextureId = ""
+                elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                    if not (obj.Name == "face" and obj.Parent and obj.Parent.Name == "Head") then
+                        obj.Transparency = 1
+                    end
+                elseif obj:IsA("BasePart") then
+                    obj.CastShadow = false
+                    obj.Material   = Enum.Material.Plastic
+                end
+            end)
+        end
+    end)
+end
+
+local function _optimizeCharacter(char)
+    if not char then return end
+    task.spawn(function()
+        task.wait(0.5)
+        for _, part in ipairs(char:GetDescendants()) do
+            pcall(function()
+                if part:IsA("BasePart") then
+                    part.CastShadow = false
+                    part.Material   = Enum.Material.Plastic
+                    part.Reflectance= 0
+                elseif part:IsA("ParticleEmitter") or part:IsA("Trail") or part:IsA("Beam") then
+                    part:Destroy()
+                elseif part:IsA("PointLight") or part:IsA("SpotLight") or part:IsA("SurfaceLight") then
+                    part:Destroy()
+                elseif part:IsA("Fire") or part:IsA("Smoke") or part:IsA("Sparkles") then
+                    part:Destroy()
+                end
+            end)
+        end
+    end)
+end
+
+function OPTIMIZER.Enable()
+    if getgenv and getgenv().OPTIMIZER_ACTIVE then
+        log("Optimizer already running", "WARN"); return
+    end
+    if getgenv then getgenv().OPTIMIZER_ACTIVE = true end
+
+    _storeOriginal()
+
+    pcall(function()
+        settings().Rendering.QualityLevel        = Enum.QualityLevel.Level01
+        settings().Rendering.MeshPartDetailLevel  = Enum.MeshPartDetailLevel.Level01
+        Lighting.FogEnd                           = 9e9
+        Lighting.EnvironmentDiffuseScale          = 0
+        Lighting.EnvironmentSpecularScale         = 0
+        for _, e in ipairs(Lighting:GetChildren()) do
+            if e:IsA("PostEffect") then pcall(function() e.Enabled=false; e:Destroy() end) end
+        end
+        for _, cls in ipairs({"Atmosphere","BloomEffect","BlurEffect","ColorCorrectionEffect","SunRaysEffect","DepthOfFieldEffect"}) do
+            local obj = Lighting:FindFirstChildOfClass(cls)
+            if obj then pcall(function() obj:Destroy() end) end
+        end
+    end)
+
+    pcall(function()
+        workspace.Terrain.WaterWaveSize   = 0
+        workspace.Terrain.WaterWaveSpeed  = 0
+    end)
+
+    _addThread(function()
+        task.wait(1)
+        _nukeVisualEffects()
+        log("Visual effects nuked ✓", "INFO")
+    end)
+
+    _addConn(workspace.DescendantAdded:Connect(function(obj)
+        if not (getgenv and getgenv().OPTIMIZER_ACTIVE) then return end
+        pcall(function()
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam")
+                or obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight")
+                or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Explosion") then
+                obj:Destroy()
+            elseif obj:IsA("BasePart") then
+                obj.CastShadow = false
+                obj.Material   = Enum.Material.Plastic
+            end
+        end)
+    end))
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p.Character then _optimizeCharacter(p.Character) end
+        _addConn(p.CharacterAdded:Connect(function(char)
+            if getgenv and getgenv().OPTIMIZER_ACTIVE then
+                _optimizeCharacter(char)
+            end
+        end))
+    end
+    _addConn(Players.PlayerAdded:Connect(function(p)
+        _addConn(p.CharacterAdded:Connect(function(char)
+            if getgenv and getgenv().OPTIMIZER_ACTIVE then
+                _optimizeCharacter(char)
+            end
+        end))
+    end))
+
+    _addThread(function()
+        while getgenv and getgenv().OPTIMIZER_ACTIVE do
+            task.wait(15)
+            pcall(function() collectgarbage("collect") end)
+        end
+    end)
+
+    if setfpscap then pcall(function() setfpscap(9999) end) end
+
+    log("OPTIMIZER enabled ✓", "INFO")
+end
+
+function OPTIMIZER.Disable()
+    if getgenv and not getgenv().OPTIMIZER_ACTIVE then return end
+    if getgenv then getgenv().OPTIMIZER_ACTIVE = false end
+
+    for _, t in ipairs(_optimizerThreads) do pcall(function() task.cancel(t) end) end
+    _optimizerThreads = {}
+
+    for _, c in ipairs(_optimizerConnections) do pcall(function() c:Disconnect() end) end
+    _optimizerConnections = {}
+
+    pcall(function()
+        settings().Rendering.QualityLevel        = _originalSettings.qualityLevel        or Enum.QualityLevel.Automatic
+        settings().Rendering.MeshPartDetailLevel  = _originalSettings.meshPartDetailLevel  or Enum.MeshPartDetailLevel.DistanceBased
+        Lighting.GlobalShadows                    = _originalSettings.globalShadows       ~= false
+        Lighting.Brightness                       = _originalSettings.brightness          or 1
+        Lighting.FogEnd                           = _originalSettings.fogEnd              or 100000
+        Lighting.Technology                       = _originalSettings.technology          or Enum.Technology.ShadowMap
+        Lighting.EnvironmentDiffuseScale          = _originalSettings.envDiffuse          or 1
+        Lighting.EnvironmentSpecularScale         = _originalSettings.envSpecular         or 1
+        workspace.Terrain.WaterWaveSize           = _originalSettings.waterWaveSize       or 0.15
+        workspace.Terrain.WaterWaveSpeed          = _originalSettings.waterWaveSpeed      or 10
+        workspace.Terrain.WaterReflectance        = _originalSettings.waterReflectance    or 1
+        workspace.Terrain.WaterTransparency       = _originalSettings.waterTransparency   or 0.3
+        workspace.Terrain.Decoration              = _originalSettings.decoration          ~= false
+    end)
+
+    log("OPTIMIZER disabled", "INFO")
+end
+
+task.spawn(function()
+    repeat task.wait(0.1) until game:IsLoaded()
+    task.wait(0.5)
+    OPTIMIZER.Enable()
+end)
+
+-- ========================
+-- WAIT GAME LOADED → XÓA BLACKSCREEN
+-- ========================
+task.spawn(function()
+    local t = tick()
+    repeat task.wait(0.1) until game:IsLoaded() or (tick()-t > 15)
+    task.wait(0.1)
+
+    _G._mergedSpeedReady = true
+    subLabel.Text = "ready!"
+    task.wait(0.3)
+    black:Destroy()
+    log("Blackscreen removed ✓", "INFO")
+end)
+
+-- ========================
+-- HUD
+-- ========================
+task.spawn(function()
+    repeat task.wait(0.1) until _G._mergedSpeedReady
+
+    if PlayerGui:FindFirstChild("MergedSpeedHUD") then
+        PlayerGui.MergedSpeedHUD:Destroy()
+    end
+
+    local hudGui = Instance.new("ScreenGui", PlayerGui)
+    hudGui.Name           = "MergedSpeedHUD"
+    hudGui.ResetOnSpawn   = false
+    hudGui.DisplayOrder   = 999998
+    hudGui.IgnoreGuiInset = true
+
+    local bar = Instance.new("Frame", hudGui)
+    bar.Size             = UDim2.new(0, 160, 0, 2)
+    bar.Position         = UDim2.new(0.5, -80, 0, 15)
+    bar.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    bar.BorderSizePixel  = 0
+
+    local hudTitle = Instance.new("TextLabel", hudGui)
+    hudTitle.Size                = UDim2.new(0, 160, 0, 22)
+    hudTitle.Position            = UDim2.new(0.5, -80, 0, 18)
+    hudTitle.BackgroundTransparency = 1
+    hudTitle.Text                = "1"
+    hudTitle.Font                = Enum.Font.GothamBold
+    hudTitle.TextSize            = 15
+    hudTitle.TextColor3          = Color3.fromRGB(100, 150, 255)
+    hudTitle.TextStrokeTransparency = 0.5
+
+    local statsFrame = Instance.new("Frame", hudGui)
+    statsFrame.Size              = UDim2.new(0, 130, 0, 65)
+    statsFrame.Position          = UDim2.new(0, 10, 1, -75)
+    statsFrame.BackgroundColor3  = Color3.fromRGB(0, 0, 0)
+    statsFrame.BackgroundTransparency = 0.35
+    statsFrame.BorderSizePixel   = 0
+
+    local accentLine = Instance.new("Frame", statsFrame)
+    accentLine.Size             = UDim2.new(1, 0, 0, 2)
+    accentLine.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    accentLine.BorderSizePixel  = 0
+
+    local statsText = Instance.new("TextLabel", statsFrame)
+    statsText.Size              = UDim2.new(1,-6, 1,-4)
+    statsText.Position          = UDim2.new(0,3, 0,2)
+    statsText.BackgroundTransparency = 1
+    statsText.TextColor3        = Color3.fromRGB(100, 150, 255)
+    statsText.Font              = Enum.Font.Code
+    statsText.TextSize          = 11
+    statsText.TextXAlignment    = Enum.TextXAlignment.Left
+    statsText.TextYAlignment    = Enum.TextYAlignment.Top
+    statsText.Text              = "FPS: --\nPING: --ms\nOPT: 🟢"
+
+    task.spawn(function()
+        local lt = tick()
+        while task.wait(0.25) do
+            local fps = math.floor(1/math.max(tick()-lt, 0.001))
+            lt = tick()
+            local ping = 0
+            pcall(function()
+                ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+            end)
+            local optStatus = (getgenv and getgenv().OPTIMIZER_ACTIVE) and "🟢" or "🔴"
+            statsText.Text = string.format("FPS: %d\nPING: %.0fms\nOPT: %s", fps, ping, optStatus)
+        end
+    end)
+
+    task.spawn(function()
+        while task.wait(2.5) do
+            TweenService:Create(bar, TweenInfo.new(0.25), {Size=UDim2.new(0,200,0,2)}):Play()
+            task.wait(0.25)
+            TweenService:Create(bar, TweenInfo.new(0.25), {Size=UDim2.new(0,160,0,2)}):Play()
+        end
+    end)
+end)
+
+log("MERGED SPEED v2.2 + 219 FFLAGS — Ready ⚡", "INFO")
+print("⚡ MERGED SPEED v2.2 + 219 FFlags (UNLOCKED FPS) loaded")
