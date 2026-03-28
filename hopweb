@@ -447,7 +447,7 @@ _G.StartHopper = function()
     _G.hopperRunning = true
 
     -- DELAY RANDOM 4-20s TRƯỚC KHI KẾT NỐI
-    local delayTime = 10 + math.random() * 13
+    local delayTime = 3.4
     print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
     task.wait(delayTime)
     
