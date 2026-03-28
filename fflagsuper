@@ -1,6 +1,5 @@
 --[[
     MERGED SPEED v2.2 + 219 FFLAGS
-    - Loading UI: n1gloader style (pill bar + dots + slide text)
     - Network / FPS / Map optimization từ Roblox DevForum + GitHub research
     - 219 FFlags (unlocked FPS, tối ưu network, tắt telemetry)
     - Auto-run khi execute, không cần toggle
@@ -21,9 +20,6 @@ local FFLAGS = {
     ["DFIntRakNetResendRttMultiple"] = 1,
     ["DFIntRaknetBandwidthPingSendEveryXSeconds"] = 1,
 
-    ["DFIntRakNetMtuValue1InBytes"] = 1280,
-    ["DFIntRakNetMtuValue2InBytes"] = 1240,
-    ["DFIntRakNetMtuValue3InBytes"] = 1200,
 
     ["DFIntRakNetNakResendDelayMsMax"] = 100,
     ["DFIntRakNetClockDriftAdjustmentPerPingMillisecond"] = 100,
@@ -84,7 +80,6 @@ local FFLAGS = {
     ["FIntFRMMaxGrassDistance"] = 0,
     ["FStringInGameMenuChromeForcedUserIds"] = 1353919681,
     ["DFIntServerPhysicsUpdateRate"] = 60,
-    ["DFIntWaitOnRecvFromLoopEndedMS"] = 100,
 
     ["FFlagFixGraphicsQuality"] = true,
 
@@ -132,7 +127,6 @@ local FFLAGS = {
 
 
 
-    ["DFIntHttpCurlConnectionCacheSize"] = 134217728,
     ["FFlagDebugDisableTelemetryV2Event"] = true,
     ["FFlagEnableMenuModernizationABTest"] = false,
     ["FIntMockClientLightingTechnologyIxpExperimentQualityLevel"] = 7,
@@ -151,8 +145,8 @@ local FFLAGS = {
 
     ["DFIntMaxFrameBufferSize"] = 4,
     ["DFIntGoogleAnalyticsLoadPlayerHundredth"] = 0,
-    ["FFlagSimIslandizerManager"] = false,
-    ["FFlagReconnectDisabled"] = true,
+
+
 
 
 
@@ -164,7 +158,7 @@ local FFLAGS = {
     ["FIntRobloxGuiBlurIntensity"] = 0,
     ["DFLogHttpTraceLight"] = 0,
     ["FFlagDebugDisableTelemetryV2Counter"] = true,
-    ["FFlagDontCreatePingJob"] = true,
+
     ["DFFlagEnableFmodErrorsTelemetry"] = false,
     ["FFlagDebugDisableTelemetryV2Stat"] = true,
 
@@ -241,12 +235,9 @@ local FFLAGS = {
     ["FIntDebugTextureManagerSkipMips"] = 3,
     ["FFlagEnableTerrainFoliageOptimizations"] = true,
     ["FFlagEnableTerrainOptimizations"] = true,
-    ["FFlagAnimatePhysics"] = false,
     ["FFlagUseParticlesV2"] = false,
     ["FFlagUseDynamicSun"] = false,
-    ["FFlagUseUnifiedRenderStepped"] = false,
     ["FFlagEnableLightAttachToPart"] = false,
-    ["FFlagUseNewAnimationSystem"] = false,
     ["FFlagEnableHumanoidLuaSideCaching"] = false,
     ["FFlagFixScalingModelRendering"] = false,
     ["FFlagFixMeshPartScaling"] = false,
@@ -257,14 +248,110 @@ local FFLAGS = {
     ["FFlagEnableNewInput"] = true,
     ["DFIntRenderingThrottleDelayInMS"] = 1,
 
+    -- NETWORK BUFF (wifi tăng tốc, giảm ping)
+    ["FIntRakNetResendBufferArrayLength"] = 128,
+    ["DFIntPlayerNetworkUpdateQueueSize"] = 20,
+    ["DFIntPlayerNetworkUpdateRate"] = 60,
+    ["FIntRakNetDatagramMessageIdArrayLength"] = 1024,
+    ["DFIntMaxProcessPacketsJobScaling"] = 10000,
+    ["DFFlagRakNetCalculateApplicationFeedback2"] = true,
+    ["DFIntClientPacketMaxFrameMicroseconds"] = 200,
+    ["DFFlagNetworkUseZstdWrapper"] = false,
+    -- BANDWIDTH MAXIMUM (ăn mạng tối đa, gửi/nhận nhanh nhất có thể)
+    ["DFIntRaknetBandwidthInfluxHundredthsPercentageV2"] = 100000,
+    ["DFIntCodecMaxOutgoingFrames"] = 99999,
+    ["DFIntCodecMaxIncomingPackets"] = 9999,
+    ["DFIntNetworkClusterPacketCacheNumParallelTasks"] = 12,
+    ["DFIntReplicationDataCacheNumParallelTasks"] = 12,
+    ["DFIntMegaReplicatorNumParallelTasks"] = 12,
+    ["DFIntMaxProcessPacketsStepsPerCyclic"] = 9999,
+    ["DFIntMaxDataPacketPerSend"] = 2147483647,
+    ["DFIntBufferCompressionThreshold"] = 50,
+    ["DFIntPhysicsStepsPerFrame"] = 1,
+    ["FFlagLargeReplicatorRead2"] = true,
+    ["DFFlagReplicatorSeparateVarThresholds"] = true,
+    ["FFlagFasterPreciseTime4"] = true,
+    ["FFlagDontCreatePingJob"] = true,
+    ["FFlagSimEnableDCD16"] = true,
+    ["FFlagEnableReducedLatency"] = true,
+    ["FFlagUISUseLastFrameTimeInUpdateInputSignal"] = true,
+    ["DFFlagTeleportClientAssetPreloadingDoingExperiment2"] = true,
+    ["FIntActivatedCountTimerMSKeyboard"] = 0,
+    ["DFIntWaitOnUpdateNetworkLoopEndedMS"] = 50,
+    ["DFIntGCJobFrequencyMs"] = 100,
 
 
+    -- SCRIPT LOAD / EXECUTION SPEED (tải và chạy script Roblox nhanh hơn)
+    ["FFlagLuaAppEnableLowMemoryMode"] = true,
+    ["FFlagPreComputeAcceleratorArrayForSharingTimeCurve"] = true,
+    ["DFFlagFrameTimeJitterMedians2"] = false,
+    ["FFlagFRMRefactor"] = false,
+    ["FFlagFixSensitivityTextPrecision"] = false,
+    ["FFlagDebugNextGenReplicatorEnabledWriteCFrameColor"] = true,
+    ["DFIntOcclusionShelfScalarNumerator"] = 2,
+    ["FFlagUserBetterInertialScrolling"] = true,
 
+    -- HTTP / CURL SPEED (nhận dữ liệu từ script/remote nhanh hơn)
+    ["DFIntHttpCurlConnectionCacheSize"] = 2147483647,
+    ["DFIntHttpParallelLimit_RequestExperienceNotificationService"] = 128,
+    ["DFIntWaitOnRecvFromLoopEndedMS"] = 10,
 
+    -- FASTER LOADING (load game / UI / asset nhanh hơn)
+    ["DFIntNumAssetsMaxToPreload"] = 9999999,
+    ["DFIntAssetPreloading"] = 9999999,
+    ["DFFlagEnableMeshPreloading2"] = true,
+    ["DFFlagEnableRequestAsyncCompression"] = false,
+    ["FFlagEnableQuickGameLaunch"] = true,
 
+    -- FASTER EXECUTION / SCHEDULER
+    ["DFIntGraphicsOptimizationModeMaxFrameTimeTargetMs"] = 20,
+    ["DFFlagFastEndUpdateLoop"] = true,
 
+    -- TELEPORT / JOIN SPEED (giảm IsTeleporting lag, giúp auto-join nhanh hơn)
+    ["DFIntMinimalNetworkPrediction"] = 0,
+    ["DFFlagSkipValidateReceivedJoinData"] = true,
+    ["FFlagRakNetDisableFlowControl"] = true,
+    ["DFFlagRakNetDisableCongestionControl"] = true,
+    ["DFIntMaxDataPacketPerSend"] = 2147483647,
+    ["DFFlagDisableDownloadBandwidthTracker"] = true,
 
+    -- HTTP / EXTERNAL REQUEST SPEED (WebSocket, HttpService nhận kết quả nhanh hơn)
+    ["FIntMeshContentProviderForceCacheSize"] = 268435456,
+    ["DFIntUserIdPlayerNameCacheSize"] = 67108864,
 
+    -- TELEMETRY THÊM (tắt nốt các cái còn lại để giảm background traffic)
+    ["DFFlagDisableFastLogTelemetry"] = true,
+    ["DFFlagBrowserTrackerIdTelemetryEnabled"] = false,
+    ["DFIntMacWebViewTelemetryThrottleHundredthsPercent"] = 0,
+    ["SFFlagPerformanceTelemetryGlobalThrottleHundredthsPercent"] = false,
+
+    -- MISC SPEED
+    ["FFlagTweenOptimizations"] = true,
+    ["FFlagShaderLightingRefactor"] = true,
+    ["FFlagRenderLegacyShadowsQualityRefactor"] = true,
+
+    -- TẮT HIỆU ỨNG VÒNG / CHUYỂN ĐỘNG XUNG QUANH NHÂN VẬT
+    ["FFlagDebugDeterministicParticles"] = false,
+    ["FFlagUseParticlesV2"] = false,
+    ["FFlagGlobalWindRendering"] = false,
+    ["FFlagGlobalWindActivated"] = false,
+    ["FIntParticleMaxEmittersPerFrame"] = 0,
+    ["DFIntParticleMaxEmitterCount"] = 0,
+    ["FFlagDebugSSAOForce"] = false,
+    ["FFlagRenderVulkanFixMinimizeWindow"] = false,
+    ["FIntRenderLocalLightFadeInMs"] = 0,
+    ["DFIntCullFactorPixelThresholdShadowMapHighQuality"] = 2147483647,
+    ["DFIntCullFactorPixelThresholdShadowMapLowQuality"] = 2147483647,
+    -- ANIMATION / MOVEMENT (giữ nguyên chuyển động)
+    ["FFlagAnimatePhysics"] = true,
+    ["FFlagUseNewAnimationSystem"] = true,
+    ["FFlagUseUnifiedRenderStepped"] = true,
+    ["DFIntAnimationLodFacsDistanceMin"] = 0,
+    ["DFIntAnimationLodFacsDistanceMax"] = 0,
+    ["DFIntAnimationLodFacsVisibilityDenominator"] = 0,
+    ["DFIntReplicatorAnimationTrackLimitPerAnimator"] = -1,
+    ["FStringRemoteAnimationSmoothingStrategy"] = "ExponentialDecay",
+    ["DFFlagSimAdaptiveTimesteppingEnabled2"] = true,
 
 }
 
@@ -273,32 +360,10 @@ local FFLAGS = {
 -- ========================
 local Players         = game:GetService("Players")
 local RunService      = game:GetService("RunService")
-local TweenService    = game:GetService("TweenService")
-local UserInputService= game:GetService("UserInputService")
 local Lighting        = game:GetService("Lighting")
 local ContentProvider = game:GetService("ContentProvider")
-local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local player          = Players.LocalPlayer
 
--- ========================
--- REMOVE DEFAULT LOADING SCREEN
--- ========================
-pcall(function() ReplicatedFirst:RemoveDefaultLoadingScreen() end)
-
--- ========================
--- BLACKSCREEN (CoreGui ngay lập tức)
--- ========================
-local loadingGui = Instance.new("ScreenGui")
-loadingGui.Name          = "MergedSpeedLoader"
-loadingGui.ResetOnSpawn  = false
-loadingGui.IgnoreGuiInset= true
-loadingGui.DisplayOrder  = 999999
-loadingGui.Parent        = game:GetService("CoreGui")
-
-local black = Instance.new("Frame", loadingGui)
-black.Size              = UDim2.fromScale(1,1)
-black.BackgroundColor3  = Color3.fromRGB(0,0,0)
-black.ZIndex            = 999
 
 -- ========================
 -- APPLY FFLAGS NGAY LẬP TỨC (CHỈ 1 LẦN MỖI SESSION ROBLOX)
@@ -404,142 +469,6 @@ task.spawn(function()
     --removed
 end)
 
--- ========================
--- WAIT FOR PLAYERGUI
--- ========================
-local PlayerGui
-repeat task.wait() until Players.LocalPlayer
-repeat task.wait() PlayerGui = player:FindFirstChildOfClass("PlayerGui") until PlayerGui
-loadingGui.Parent = PlayerGui
-
--- ========================
--- PILL BAR UI (n1gloader style)
--- ========================
-local pillBar = Instance.new("Frame", loadingGui)
-pillBar.AnchorPoint         = Vector2.new(0.5, 0)
-pillBar.Position            = UDim2.fromScale(0.5, 0.01)
-pillBar.Size                = UDim2.fromScale(0.13, 0.06)
-pillBar.BackgroundColor3    = Color3.fromRGB(30, 30, 30)
-pillBar.BackgroundTransparency = 0.2
-pillBar.ZIndex              = 1000
-Instance.new("UICorner", pillBar).CornerRadius = UDim.new(1, 0)
-
-local titleLabel = Instance.new("TextLabel", pillBar)
-titleLabel.AnchorPoint      = Vector2.new(0.5, 0.5)
-titleLabel.Position         = UDim2.fromScale(0.5, 0.35)
-titleLabel.Size             = UDim2.fromScale(0.8, 0.4)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text             = "1"
-titleLabel.TextScaled       = true
-titleLabel.Font             = Enum.Font.GothamBold
-titleLabel.TextColor3       = Color3.fromRGB(128, 128, 128)
-titleLabel.ZIndex           = 1001
-
-local subLabel = Instance.new("TextLabel", pillBar)
-subLabel.AnchorPoint        = Vector2.new(0.5, 0.5)
-subLabel.Position           = UDim2.fromScale(0.5, 0.72)
-subLabel.Size               = UDim2.fromScale(0.8, 0.3)
-subLabel.BackgroundTransparency = 1
-subLabel.Text               = "optimizing..."
-subLabel.TextScaled         = true
-subLabel.Font               = Enum.Font.Gotham
-subLabel.TextColor3         = Color3.fromRGB(100, 100, 100)
-subLabel.ZIndex             = 1001
-
--- Moving dots
-local dotsContainer = Instance.new("Frame", pillBar)
-dotsContainer.Size              = UDim2.fromScale(1, 1)
-dotsContainer.BackgroundTransparency = 1
-dotsContainer.ZIndex            = 1002
-
-local dots = {}
-for i = 1, 15 do
-    local dot = Instance.new("Frame", dotsContainer)
-    dot.Size             = UDim2.fromScale(0.02, 0.02)
-    dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    dot.BorderSizePixel  = 0
-    dot.ZIndex           = 1003
-    dot.Position         = UDim2.fromScale(math.random(0,100)/100, math.random(0,100)/100)
-    table.insert(dots, {
-        instance = dot,
-        xSpeed   = (math.random(50,150)/1000) * (math.random()>0.5 and 1 or -1),
-        ySpeed   = (math.random(50,150)/1000) * (math.random()>0.5 and 1 or -1),
-    })
-end
-
-task.spawn(function()
-    while pillBar.Parent do
-        for _, d in pairs(dots) do
-            local dot = d.instance
-            local nx  = dot.Position.X.Scale + d.xSpeed * 0.02
-            local ny  = dot.Position.Y.Scale + d.ySpeed * 0.02
-            if nx<=0 or nx>=1 then d.xSpeed=-d.xSpeed; nx=math.clamp(nx,0,1) end
-            if ny<=0 or ny>=1 then d.ySpeed=-d.ySpeed; ny=math.clamp(ny,0,1) end
-            dot.Position = UDim2.fromScale(nx, ny)
-        end
-        task.wait(0.01)
-    end
-end)
-
--- Overlay + slide text
-local overlay = Instance.new("Frame", loadingGui)
-overlay.Size                    = UDim2.fromScale(1,1)
-overlay.BackgroundColor3        = Color3.fromRGB(0,0,0)
-overlay.BackgroundTransparency  = 1
-overlay.ZIndex                  = 998
-
-local madeBy = Instance.new("TextLabel", loadingGui)
-madeBy.AnchorPoint          = Vector2.new(0, 0.5)
-madeBy.Position             = UDim2.fromScale(-0.3, 0.5)
-madeBy.Size                 = UDim2.fromScale(0.2, 0.06)
-madeBy.BackgroundTransparency = 1
-madeBy.Text                 = "made by 1"
-madeBy.TextScaled           = true
-madeBy.Font                 = Enum.Font.GothamBold
-madeBy.TextColor3           = Color3.fromRGB(128, 128, 128)
-madeBy.ZIndex               = 1001
-
--- Slide animation
-task.spawn(function()
-    local t0 = tick()
-    while tick()-t0 < 0.5 do
-        overlay.BackgroundTransparency = 1 - ((tick()-t0)/0.5 * 0.7)
-        task.wait(0.01)
-    end
-    overlay.BackgroundTransparency = 0.3
-
-    local startPos  = madeBy.Position
-    local targetPos = UDim2.fromScale(1.3, 0.5)
-    local t1 = tick()
-    while tick()-t1 < 6 and madeBy.Parent do
-        madeBy.Position = startPos:Lerp(targetPos, (tick()-t1)/6)
-        task.wait(0.01)
-    end
-
-    while not _G._mergedSpeedReady and madeBy.Parent do
-        local cx = madeBy.Position.X.Scale
-        if cx > 1.3 then madeBy.Position = UDim2.fromScale(-0.3, 0.5) end
-        madeBy.Position = UDim2.fromScale(cx + 0.015, 0.5)
-        task.wait(0.01)
-    end
-
-    local startT = overlay.BackgroundTransparency
-    local t2 = tick()
-    while tick()-t2 < 0.5 do
-        overlay.BackgroundTransparency = startT + ((tick()-t2)/0.5)*(1-startT)
-        task.wait(0.01)
-    end
-    overlay.BackgroundTransparency = 1
-end)
-
--- Pulse title
-task.spawn(function()
-    while loadingGui.Parent and titleLabel.Parent do
-        local v = math.clamp(128*(0.3+0.7*(math.sin(tick()*1.5)*0.5+0.5)), 0, 128)
-        titleLabel.TextColor3 = Color3.fromRGB(v, v, v)
-        task.wait(0.03)
-    end
-end)
 
 -- ========================
 -- BACKGROUND TASKS
@@ -763,97 +692,7 @@ task.spawn(function()
     OPTIMIZER.Enable()
 end)
 
--- ========================
--- WAIT GAME LOADED → XÓA BLACKSCREEN
--- ========================
-task.spawn(function()
-    local t = tick()
-    repeat task.wait(0.1) until game:IsLoaded() or (tick()-t > 15)
-    task.wait(0.1)
 
-    _G._mergedSpeedReady = true
-    subLabel.Text = "ready!"
-    task.wait(0.3)
-    black:Destroy()
-    --removed
-end)
 
--- ========================
--- HUD
--- ========================
-task.spawn(function()
-    repeat task.wait(0.1) until _G._mergedSpeedReady
-
-    if PlayerGui:FindFirstChild("MergedSpeedHUD") then
-        PlayerGui.MergedSpeedHUD:Destroy()
-    end
-
-    local hudGui = Instance.new("ScreenGui", PlayerGui)
-    hudGui.Name           = "MergedSpeedHUD"
-    hudGui.ResetOnSpawn   = false
-    hudGui.DisplayOrder   = 999998
-    hudGui.IgnoreGuiInset = true
-
-    local bar = Instance.new("Frame", hudGui)
-    bar.Size             = UDim2.new(0, 160, 0, 2)
-    bar.Position         = UDim2.new(0.5, -80, 0, 15)
-    bar.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-    bar.BorderSizePixel  = 0
-
-    local hudTitle = Instance.new("TextLabel", hudGui)
-    hudTitle.Size                = UDim2.new(0, 160, 0, 22)
-    hudTitle.Position            = UDim2.new(0.5, -80, 0, 18)
-    hudTitle.BackgroundTransparency = 1
-    hudTitle.Text                = "1"
-    hudTitle.Font                = Enum.Font.GothamBold
-    hudTitle.TextSize            = 15
-    hudTitle.TextColor3          = Color3.fromRGB(100, 150, 255)
-    hudTitle.TextStrokeTransparency = 0.5
-
-    local statsFrame = Instance.new("Frame", hudGui)
-    statsFrame.Size              = UDim2.new(0, 130, 0, 65)
-    statsFrame.Position          = UDim2.new(0, 10, 1, -75)
-    statsFrame.BackgroundColor3  = Color3.fromRGB(0, 0, 0)
-    statsFrame.BackgroundTransparency = 0.35
-    statsFrame.BorderSizePixel   = 0
-
-    local accentLine = Instance.new("Frame", statsFrame)
-    accentLine.Size             = UDim2.new(1, 0, 0, 2)
-    accentLine.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-    accentLine.BorderSizePixel  = 0
-
-    local statsText = Instance.new("TextLabel", statsFrame)
-    statsText.Size              = UDim2.new(1,-6, 1,-4)
-    statsText.Position          = UDim2.new(0,3, 0,2)
-    statsText.BackgroundTransparency = 1
-    statsText.TextColor3        = Color3.fromRGB(100, 150, 255)
-    statsText.Font              = Enum.Font.Code
-    statsText.TextSize          = 11
-    statsText.TextXAlignment    = Enum.TextXAlignment.Left
-    statsText.TextYAlignment    = Enum.TextYAlignment.Top
-    statsText.Text              = "FPS: --\nPING: --ms\nOPT: 🟢"
-
-    task.spawn(function()
-        local lt = tick()
-        while task.wait(0.25) do
-            local fps = math.floor(1/math.max(tick()-lt, 0.001))
-            lt = tick()
-            local ping = 0
-            pcall(function()
-                ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
-            end)
-            local optStatus = (getgenv and getgenv().OPTIMIZER_ACTIVE) and "🟢" or "🔴"
-            statsText.Text = string.format("FPS: %d\nPING: %.0fms\nOPT: %s", fps, ping, optStatus)
-        end
-    end)
-
-    task.spawn(function()
-        while task.wait(2.5) do
-            TweenService:Create(bar, TweenInfo.new(0.25), {Size=UDim2.new(0,200,0,2)}):Play()
-            task.wait(0.25)
-            TweenService:Create(bar, TweenInfo.new(0.25), {Size=UDim2.new(0,160,0,2)}):Play()
-        end
-    end)
-end)
 
 --removed
