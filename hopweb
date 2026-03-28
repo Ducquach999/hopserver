@@ -5,7 +5,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://supports-celebrities-represented-font.trycloudflare.com"
+local WS_URL = "wss://other-hundred-juan-research.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
