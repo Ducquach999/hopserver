@@ -1,5 +1,43 @@
 repeat task.wait() until game:IsLoaded()
 
+-- 🔒 PATCH SYNCHRONIZER ANTI-CHEAT (prevent kick when reading AnimalList)
+do
+    local ok_sync, Sync = pcall(function()
+        return require(game.ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Synchronizer"))
+    end)
+    if ok_sync and Sync then
+        local patched = 0
+        for name, fn in pairs(Sync) do
+            if typeof(fn) ~= "function" then continue end
+            if isexecutorclosure and isexecutorclosure(fn) then continue end
+            local ok, ups = pcall(debug.getupvalues, fn)
+            if not ok then continue end
+            for idx, val in pairs(ups) do
+                if typeof(val) == "function" then
+                    if isexecutorclosure and isexecutorclosure(val) then continue end
+                    local ok2, innerUps = pcall(debug.getupvalues, val)
+                    if ok2 then
+                        local hasBoolean = false
+                        for _, v in pairs(innerUps) do
+                            if typeof(v) == "boolean" then
+                                hasBoolean = true
+                                break
+                            end
+                        end
+                        if hasBoolean then
+                            pcall(function()
+                                debug.setupvalue(fn, idx, newcclosure(function() end))
+                                patched += 1
+                            end)
+                        end
+                    end
+                end
+            end
+        end
+        print("✅ Synchronizer patched:", patched, "functions")
+    end
+end
+
 setfpscap(10)
 
 --==================================================
@@ -382,7 +420,7 @@ local targets1 = {
     'Love Love Bear','La Romantic Grande','Fishino Clownino','Los Sweethearts',
     'Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
     'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Los Cupids','Cloverat Clapat','Fortunu and Cashuru','Gold Gold Gold','Snailo Clovero',
-    'Foxini Lanternini','Dug dug dug','Noo my Eggs'
+    'Foxini Lanternini','Dug dug dug','La Lucky Grande','Nacho Spyder','La Easter Grande','Noo my Eggs',
 }
 local targetsVIP = {
     'Chipso and Queso','La Casa Boo','Headless Horseman',
@@ -400,7 +438,7 @@ local targetsVIP = {
     'Ketupat Bros','Hydra Dragon Cannelloni','Popcuru and Fizzuru','Rosetti Tualetti','Rosey and Teddy','Love Love Bear',
     'La Romantic Grande','Fishino Clownino','Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
     'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Cloverat Clapat','Fortunu and Cashuru',
-    'Foxini Lanternini','Noo my Eggs',
+    'Foxini Lanternini','La Lucky Grande','Nacho Spyder','La Easter Grande','Noo my Eggs',
 }
 
 local targets2 = {
@@ -446,7 +484,6 @@ _G.StartHopper = function()
     -- Nếu đang có hopper chạy, dừng cái cũ trước
     _G.hopperRunning = true
 
-    -- DELAY RANDOM 4-20s TRƯỚC KHI KẾT NỐI
     local delayTime = 3.4
     print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
     task.wait(delayTime)
@@ -762,8 +799,16 @@ local function sendWebhook1(foundTargets)
     local hasVIP = false
     for i, target in ipairs(foundTargets) do
         local lowerName = string.lower(target.name or "")
-        local emoji = targetDictVIP[lowerName] and '🐱' or '✅'
-        if targetDictVIP[lowerName] then hasVIP = true end
+        local isVIP = targetDictVIP[lowerName]
+        local emoji
+        if target.isDuel then
+            emoji = '❌'
+        elseif isVIP then
+            emoji = '🐱'
+        else
+            emoji = '✅'
+        end
+        if isVIP then hasVIP = true end
         targetList ..= emoji .. ' ' .. (target.name or 'Unknown') .. ' - ' .. (target.price or "$0/s")
         if i < #foundTargets then targetList ..= '\n' end
     end
@@ -879,7 +924,8 @@ local function sendWebhook2(foundTargets)
 
     local targetList = ''
     for i, target in ipairs(foundTargets) do
-        targetList ..= '✅ ' .. (target.name or 'Unknown') .. ' - ' .. (target.price or "$0/s")
+        local emoji = target.isDuel and '❌' or '✅'
+        targetList ..= emoji .. ' ' .. (target.name or 'Unknown') .. ' - ' .. (target.price or "$0/s")
         if i < #foundTargets then targetList ..= '\n' end
     end
 
@@ -937,6 +983,13 @@ end
 --==================================================
 print('✅ Using Debris method for pet detection!')
 
+local function isPlotInDuel(ownerName)
+    if not ownerName or ownerName == "" then return false end
+    local ownerPlayer = Players:FindFirstChild(ownerName)
+    if not ownerPlayer then return false end
+    return ownerPlayer:GetAttribute("__duels_block_steal") == true
+end
+
 local function getValidTargetInfo(targetName)
     local debris = workspace:FindFirstChild('Debris')
     if not debris then return nil end
@@ -972,34 +1025,62 @@ local function getValidTargetInfo(targetName)
     return nil
 end
 
+-- Load Synchronizer + AnimalsData giống meowhub
+local Synchronizer = nil
+local AnimalsData = nil
+pcall(function()
+    Synchronizer = require(game.ReplicatedStorage:WaitForChild('Packages'):WaitForChild('Synchronizer'))
+end)
+pcall(function()
+    AnimalsData = require(game.ReplicatedStorage:WaitForChild('Datas'):WaitForChild('Animals'))
+end)
+if not AnimalsData then
+    pcall(function()
+        AnimalsData = require(game.ReplicatedStorage:WaitForChild('Shared'):WaitForChild('Animals'))
+    end)
+end
+
 local function getAllAnimals()
     local animals = {}
-    local debris = workspace:FindFirstChild('Debris')
-    if not debris then return animals end
-    
-    for _, template in pairs(debris:GetChildren()) do
-        local animalOverhead = template:FindFirstChild('AnimalOverhead')
-        
-        if animalOverhead and (animalOverhead:IsA('SurfaceGui') or animalOverhead:IsA('BillboardGui')) then
-            local displayName = nil
-            local isFusing = false
-            
-            for _, desc in pairs(animalOverhead:GetDescendants()) do
-                if desc:IsA('TextLabel') then
-                    if desc.Name == "DisplayName" then
-                        displayName = desc.Text
-                    elseif desc.Name == "Stolen" and string.upper(desc.Text or "") == "FUSING" then
-                        isFusing = true
+
+    if not Synchronizer then return animals end
+
+    local plots = workspace:FindFirstChild('Plots')
+    if not plots then return animals end
+
+    for _, plot in pairs(plots:GetChildren()) do
+        pcall(function()
+            local ch = Synchronizer:Get(plot.Name)
+            if not ch then return end
+
+            local al = ch:Get('AnimalList')
+            if not al then return end
+
+            local owner = ch:Get('Owner')
+            if not owner then return end
+            local ownerName = 'Unknown'
+            if typeof(owner) == 'Instance' and owner:IsA('Player') then
+                ownerName = owner.Name
+            elseif type(owner) == 'table' and owner.Name then
+                ownerName = owner.Name
+            end
+            -- Skip nếu owner offline
+            if ownerName ~= 'Unknown' and not Players:FindFirstChild(ownerName) then return end
+
+            for _, ad in pairs(al) do
+                if type(ad) == 'table' then
+                    local aName = ad.Index
+                    local aInfo = AnimalsData and AnimalsData[aName] or nil
+                    local displayName = (aInfo and aInfo.DisplayName) or aName or 'Unknown'
+                    local isFusing = type(ad.Machine) == 'table'
+                    if not isFusing then
+                        table.insert(animals, {name = displayName, owner = ownerName})
                     end
                 end
             end
-            
-            if displayName and displayName ~= "" and not isFusing then
-                table.insert(animals, {name = displayName})
-            end
-        end
+        end)
     end
-    
+
     return animals
 end
 
@@ -1012,11 +1093,17 @@ local function checkTargets()
         if targetDict1[lower] and not processed[lower] then
             processed[lower] = true
             local info = getValidTargetInfo(a.name)
-            if info then table.insert(t1, info) end
+            if info then
+                info.isDuel = isPlotInDuel(a.owner)
+                table.insert(t1, info)
+            end
         elseif targetDict2[lower] and not processed[lower] then
             processed[lower] = true
             local info = getValidTargetInfo(a.name)
-            if info then table.insert(t2, info) end
+            if info then
+                info.isDuel = isPlotInDuel(a.owner)
+                table.insert(t2, info)
+            end
         end
     end
     return t1, t2
