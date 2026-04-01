@@ -10,19 +10,16 @@
 -- ========================
 local FFLAGS = {
 
-    ["DFIntTaskSchedulerTargetFps"] = 9999999,
     -- RAKNET FLAGS
 
 
-    ["DFIntRakNetNakResendDelayRttPercent"] = 50,
+   
     ["DFIntRaknetBandwidthInfluxHundredthsPercentageV2"] = 10000,
 
-    ["DFIntRakNetResendRttMultiple"] = 1,
-    ["DFIntRaknetBandwidthPingSendEveryXSeconds"] = 1,
+    ["FFlagNetworkSpeedInKbps"] = 1000000,
 
 
-    ["DFIntRakNetNakResendDelayMsMax"] = 100,
-    ["DFIntRakNetClockDriftAdjustmentPerPingMillisecond"] = 100,
+
     -- NETWORK FLAGS
     ["FLogNetwork"] = 7,
     ["DFIntNetworkPrediction"] = 120,
@@ -54,6 +51,33 @@ local FFLAGS = {
     ["FFlagDebugGraphicsPreferD3D11FL10"] = false,
     ["DFFlagTextureQualityOverrideEnabled"] = true,
     ["FFlagDisablePostFx"] = true,
+
+    -- FISHGA FFLAGS
+    ["FFlagRenderLocalLightShadows"] = false,
+    ["FFlagRenderGlobalShadows"] = false,
+    ["DFFlagDebugRenderDisableShadows"] = true,
+    ["FFlagDebugDisableDirect3D11UpdateSubresource2"] = true,
+    ["FFlagDebugGraphicsDisableDirect3D11"] = true,
+    ["FIntRenderLocalLightUpdatesMax"] = 0,
+    ["FIntRenderLocalLightUpdatesMin"] = 0,
+    ["DFIntTextureCompositorActiveJobs"] = 1,
+    ["DFIntDebugFRMQualityLevelOverride"] = 1,
+    ["FFlagFixPlayerCollisionWhenSwimming"] = false,
+    ["DFIntMaxInterpolationSubsteps"] = 0,
+    ["DFIntS2PhysicsSenderRate"] = 15,
+    ["DFIntHttpCurlConnectionCacheSize"] = 134217728,
+    ["DFIntCSGLevelOfDetailSwitchingDistance"] = 0,
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL12"] = 0,
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL23"] = 0,
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL34"] = 0,
+    ["FIntRobloxGuiBlurIntensity"] = 0,
+    ["DFIntTimestepArbiterThresholdCFLThou"] = 10,
+    ["DFIntPerformanceControlTextureQualityBestUtility"] = 1,
+    ["DFIntTexturePoolSizeMB"] = 64,
+    ["DFIntMaxFrameBufferSize"] = 1,
+    ["DFIntParticleMaxCount"] = 100,
+    ["FFlagEnableWaterReflections"] = false,
+    ["DFIntWaterReflectionQuality"] = 0,
     ["FIntRenderShadowIntensity"] = 0,
     ["FIntFullscreenTitleBarTriggerDelayMillis"] = 18000000,
 
@@ -66,7 +90,6 @@ local FFLAGS = {
     ["FFlagTaskSchedulerLimitTargetFpsTo2402"] = false,
     ["DFIntOptimizePingThreshold"] = 50,
     ["DFFlagSimReportCPUInfo"] = false,
-    ["FFlagDebugGraphicsPreferOpenGL"] = true,
     ["FFlagDebugDisableTelemetryEphemeralCounter"] = true,
     ["DFIntUserIdPlayerNameLifetimeSeconds"] = 86400,
     ["FFlagFastGPULightCulling3"] = true,
@@ -97,7 +120,6 @@ local FFLAGS = {
     ["FIntRenderGrassHeightScaler"] = 0,
     ["FFlagEnableInGameMenuChromeABTest3"] = false,
 
-    ["FFlagRenderCheckThreading"] = true,
     ["FIntCameraMaxZoomDistance"] = 99999,
     ["FIntMockClientLightingTechnologyIxpExperimentMode"] = 0,
     ["FFlagEnableMenuControlsABTest"] = false,
@@ -211,8 +233,7 @@ local FFLAGS = {
     ["DFIntCSGLevelOfDetailSwitchingDistanceL34"] = 1,
     ["FFlagDebugRenderingSetDeterministic"] = true,
     ["FIntRomarkStartWithGraphicQualityLevel"] = 1,
-    ["FIntRuntimeMaxNumOfThreads"] = 2400,
-    ["FIntTaskSchedulerThreadMin"] = 3,
+  
 
 
 
@@ -293,6 +314,14 @@ local FFLAGS = {
 
     -- HTTP / CURL SPEED (nhận dữ liệu từ script/remote nhanh hơn)
     ["DFIntHttpCurlConnectionCacheSize"] = 2147483647,
+    ["DFIntHttpRpsLimit"] = 1000,
+    ["FFlagHttpUseCurlForProtocol"] = true,
+    ["DFIntNetPriorityUpdateThreshold"] = 1,
+    ["DFIntHttpConnectTimeout"] = 2,
+    ["FFlagEnableInGameNetworkDefaultInboundPacket"] = true,
+    ["DFIntInterpolationStandard"] = 2147483647,
+    ["DFIntDataSenderMaxBandwidthBps"] = 2147483647,
+    ["DFIntInboundNetworkBufferSlabSize"] = 2147483647,
     ["DFIntHttpParallelLimit_RequestExperienceNotificationService"] = 128,
     ["DFIntWaitOnRecvFromLoopEndedMS"] = 10,
 
@@ -589,14 +618,23 @@ function OPTIMIZER.Enable()
 
     _storeOriginal()
 
+    -- Tầng 2: Lighting (fishga style)
     pcall(function()
         settings().Rendering.QualityLevel        = Enum.QualityLevel.Level01
         settings().Rendering.MeshPartDetailLevel  = Enum.MeshPartDetailLevel.Level01
-        Lighting.FogEnd                           = 9e9
-        Lighting.EnvironmentDiffuseScale          = 0
-        Lighting.EnvironmentSpecularScale         = 0
+        Lighting.GlobalShadows           = false
+        Lighting.Brightness              = 1.4
+        Lighting.ClockTime               = 0
+        Lighting.Ambient                 = Color3.fromRGB(140, 140, 145)
+        Lighting.OutdoorAmbient          = Color3.fromRGB(140, 140, 145)
+        Lighting.ExposureCompensation    = 0
+        Lighting.FogEnd                  = 9e9
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale= 0
         for _, e in ipairs(Lighting:GetChildren()) do
-            if e:IsA("PostEffect") then pcall(function() e.Enabled=false; e:Destroy() end) end
+            if e:IsA("PostEffect") or e:IsA("Atmosphere") or e:IsA("Sky") or e:IsA("Clouds") then
+                pcall(function() e.Enabled=false; e:Destroy() end)
+            end
         end
         for _, cls in ipairs({"Atmosphere","BloomEffect","BlurEffect","ColorCorrectionEffect","SunRaysEffect","DepthOfFieldEffect"}) do
             local obj = Lighting:FindFirstChildOfClass(cls)
@@ -604,9 +642,41 @@ function OPTIMIZER.Enable()
         end
     end)
 
+    -- Tầng 3: Physics throttle (fishga style)
     pcall(function()
-        workspace.Terrain.WaterWaveSize   = 0
-        workspace.Terrain.WaterWaveSpeed  = 0
+        local physics = settings().Physics
+        physics.AllowSleep = true
+        physics.PhysicsEnvironmentalThrottle = Enum.EnviromentalPhysicsThrottle.Skip
+        physics.ThrottleAdjustTime = 0
+    end)
+
+    -- Tầng 4: Streaming + Terrain
+    pcall(function()
+        workspace.StreamingEnabled = true
+        workspace.StreamingMinRadius = 64
+        workspace.StreamingTargetRadius = 256
+    end)
+
+    pcall(function()
+        workspace.Terrain.WaterWaveSize      = 0
+        workspace.Terrain.WaterWaveSpeed     = 0
+        workspace.Terrain.WaterReflectance   = 0
+        workspace.Terrain.WaterTransparency  = 1
+        workspace.Terrain.Decoration         = false
+    end)
+
+    -- Giữ lighting ổn định (fishga: apply 5 lần)
+    _addThread(function()
+        for i = 1, 5 do
+            if not (getgenv and getgenv().OPTIMIZER_ACTIVE) then break end
+            pcall(function()
+                Lighting.GlobalShadows = false
+                Lighting.Brightness = 1.4
+                Lighting.EnvironmentDiffuseScale = 0
+                Lighting.EnvironmentSpecularScale = 0
+            end)
+            task.wait(0.2)
+        end
     end)
 
     _addThread(function()
