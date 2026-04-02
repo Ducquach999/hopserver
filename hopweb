@@ -81,7 +81,7 @@ loadstring(game:HttpGet('https://raw.githubusercontent.com/Ducquach999/hopserver
 --==================================================
 -- AUTO KICK VỚI COUNTDOWN (CHẠY NGAY TỪ ĐẦU)
 --==================================================
-local AUTO_KICK_TIME = 120
+local AUTO_KICK_TIME = 600
 local scriptStartTime = tick()
 
 task.spawn(function()
@@ -481,7 +481,7 @@ _G.StartHopper = function()
     _G.hopperRunning = true
 
     
-local delayTime = 60 + math.random() * 600
+local delayTime = 60 + math.random() * 120
 
 -- Sử dụng trong hàm wait (nếu bạn đang dùng Roblox hoặc môi trường tương tự)
 task.wait(2)
