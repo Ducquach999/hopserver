@@ -38,7 +38,7 @@ do
     end
 end
 
-setfpscap(10)
+setfpscap(3)
 
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
@@ -481,7 +481,7 @@ _G.StartHopper = function()
     _G.hopperRunning = true
 
     
-local delayTime = 60 + math.random() * 10
+local delayTime = 60 + math.random() * 600
 
 -- Sử dụng trong hàm wait (nếu bạn đang dùng Roblox hoặc môi trường tương tự)
 task.wait(2)
