@@ -43,7 +43,7 @@ setfpscap(10)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://other-hundred-juan-research.trycloudflare.com"
+local WS_URL = "wss://shannon-precision-pike-suddenly.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
@@ -480,7 +480,12 @@ _G.StartHopper = function()
     -- Nếu đang có hopper chạy, dừng cái cũ trước
     _G.hopperRunning = true
 
-    local delayTime = 3.4
+    
+-- Công thức: 60 + (0.0 đến 1.0) * 10
+local delayTime = 60 + math.random() * 10
+
+-- Sử dụng trong hàm wait (nếu bạn đang dùng Roblox hoặc môi trường tương tự)
+task.wait(delayTime)
     print(string.format("⏳ Delay %.2fs trước khi kết nối WebSocket...", delayTime))
     task.wait(delayTime)
     
