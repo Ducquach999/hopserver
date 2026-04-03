@@ -420,7 +420,7 @@ local targets1 = {
     'Love Love Bear','La Romantic Grande','Fishino Clownino','Los Sweethearts',
     'Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
     'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Los Cupids','Cloverat Clapat','Fortunu and Cashuru','Gold Gold Gold','Snailo Clovero',
-    'Foxini Lanternini','Dug dug dug','La Lucky Grande','Nacho Spyder','La Easter Grande','Noo my Eggs',
+    'Foxini Lanternini','Dug dug dug','La Lucky Grande','Nacho Spyder','La Easter Grande',
 }
 local targetsVIP = {
     'Chipso and Queso','La Casa Boo','Headless Horseman',
@@ -434,7 +434,7 @@ local targetsVIP = {
     'Ketupat Bros','Hydra Dragon Cannelloni','Popcuru and Fizzuru','Rosetti Tualetti','Rosey and Teddy','Love Love Bear',
     'La Romantic Grande','Fishino Clownino','Los Amigos','Los Sekolahs','La Food Combinasion','Sammyni Fattini','Antonio',
     'Tirilikalika Tirilikalako','Elefanto Frigo','Signore Carapace','Celestial Pegasus','Griffin','Cloverat Clapat','Fortunu and Cashuru',
-    'Foxini Lanternini','La Lucky Grande','Nacho Spyder','La Easter Grande','Noo my Eggs',
+    'Foxini Lanternini','La Lucky Grande','Nacho Spyder','La Easter Grande',
 }
 
 local targets2 = {
@@ -453,7 +453,7 @@ local targets2 = {
     'Pirulitoita Bicicleteira','La Vacca Prese Presente','Ho Ho Ho Sahur',
     'Please my Present','Matteo','Sammyni Spyderini','Dul Dul Dul','Orcalero Orcala',
     'List list list sahur','TooTini Shrimpini','Rocco Disco','Bunito Bunito Spinito','67',
-    'Los Trios','Chill Puppy','Mi Gatito','Chicleteira Bicicleteira','Los Chicleteiras','Donkeyturbo Express','Noo my Heart', 
+    'Los Trios','Chill Puppy','Mi Gatito','Chicleteira Bicicleteira','Los Chicleteiras','Donkeyturbo Express','Noo my Heart', 'Noo my Eggs',
 }
 
 local targetDict1, targetDictVIP, targetDict2 = {}, {}, {}
