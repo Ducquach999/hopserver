@@ -43,7 +43,7 @@ setfpscap(3)
 --==================================================
 -- ⭐⭐⭐ CẤU HÌNH KẾT NỐI - THAY URL Ở ĐÂY ⭐⭐⭐
 --==================================================
-local WS_URL = "wss://none-closer-rarely-flight.trycloudflare.com"
+local WS_URL = "wss://george-valve-cindy-tin.trycloudflare.com"
 --==================================================
 -- SERVICES
 --==================================================
